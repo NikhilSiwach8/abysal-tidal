@@ -5,11 +5,13 @@ import "@fontsource/outfit/latin-600.css"
 import "@fontsource/outfit/latin-800.css"
 import "./style.css"
 
-import { DEFS, HERO_SVG, LEVIATHAN_SVG, LOGO_SVG, NOISE_URL, POWER_ICONS, UI_ICONS, icon } from "./art"
+import { DEFS, LEVIATHAN_SVG, LOGO_SVG, NOISE_URL, POWER_ICONS, UI_ICONS, icon } from "./art"
 import bgFar from "./assets/bg/bg_layer_far_fog.webp"
 import bgMid from "./assets/bg/bg_layer_mid_stacks_ship.webp"
 import bgFront from "./assets/bg/bg_layer_front_kelp.webp"
 import bgPortrait from "./assets/bg/bg_portrait.webp"
+import heroIdle from "./assets/chars/hero_idle.webp"
+import heroVictory from "./assets/chars/hero_victory.webp"
 import { SYMBOL_NAMES, SYMBOL_SPRITES, symbolSvg, type Code } from "./symbols"
 import { sfx } from "./audio"
 import { setSocial, t, translateTree } from "./text"
@@ -135,7 +137,10 @@ function buildDom() {
   const app = $("#app")
   app.innerHTML = `
     ${sceneHtml()}
-    <div class="char hero"><div class="breathe">${HERO_SVG}</div></div>
+    <div class="char hero"><div class="breathe">
+      <img class="hero-pose idle" src="${heroIdle}" alt="" draggable="false">
+      <img class="hero-pose victory" src="${heroVictory}" alt="" draggable="false">
+    </div></div>
     <div class="char leviathan"><div class="breathe">${LEVIATHAN_SVG}</div></div>
     <div class="logo">${LOGO_SVG}<span class="tag" hidden></span></div>
     <main class="stage">
@@ -336,7 +341,21 @@ function overlay(html: string, ms: number): Promise<void> {
   })
 }
 
+/** Hero switches to the victory pose for big-win and feature-end celebrations. */
+function setHeroCelebrating(on: boolean) {
+  document.querySelector(".hero")?.classList.toggle("celebrating", on)
+}
+
 async function countUpOverlay(title: string, units: number, ms: number) {
+  setHeroCelebrating(true)
+  try {
+    await countUpOverlayInner(title, units, ms)
+  } finally {
+    setHeroCelebrating(false)
+  }
+}
+
+async function countUpOverlayInner(title: string, units: number, ms: number) {
   const amountId = `amt-${Math.random().toString(36).slice(2)}`
   const p = overlay(`<h1>${t(title)}</h1><div class="amount" id="${amountId}">${fmt(0)}</div>`, ms)
   sfx.bigWin()
@@ -546,7 +565,9 @@ async function playEvents(events: BookEvent[], opts: { mode: string }) {
         break
       }
       case "wincap":
+        setHeroCelebrating(true)
         await overlay(`<h1>MAX WIN</h1><div class="amount">${fmt(bookToApi(WINCAP * 100))}</div><p>${WINCAP.toLocaleString("en-US")}× reached!</p>`, 4000)
+        setHeroCelebrating(false)
         break
       case "finalWin":
         finalUnits = e.amount as number

@@ -101,7 +101,13 @@ button:disabled { cursor: not-allowed; opacity: .45; filter: grayscale(.5); }
 /* ---------------------------------------------------------------- characters */
 .char { position: fixed; z-index: 1; bottom: 2vh; pointer-events: none; transition: opacity .4s; }
 .char .char-svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.hero { width: calc(var(--g) * .44); height: calc(var(--g) * .9); left: calc(50% - var(--g) / 2 - var(--g) * .5); }
+/* Hero: generated art (1024x1536, faces right toward the grid). */
+.hero { width: calc(var(--g) * .62); height: calc(var(--g) * .93); left: calc(50% - var(--g) / 2 - var(--g) * .64); }
+.hero .breathe { position: relative; }
+.hero-pose { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; user-select: none; transition: opacity .35s ease, transform .35s ease; }
+.hero-pose.victory { opacity: 0; transform: translateY(2%) scale(.98); }
+.hero.celebrating .hero-pose.idle { opacity: 0; }
+.hero.celebrating .hero-pose.victory { opacity: 1; transform: none; }
 .leviathan { width: calc(var(--g) * .6); height: calc(var(--g) * 1.04); left: calc(50% + var(--g) / 2 + var(--g) * .02); }
 .char .breathe { width: 100%; height: 100%; animation: breathe 5s ease-in-out infinite alternate; transform-origin: 50% 100%; }
 @keyframes breathe { from { transform: translateY(0) rotate(0); } to { transform: translateY(-1.2%) rotate(-.6deg); } }
@@ -313,7 +319,7 @@ table.modes th { font-family: var(--f-lil); font-weight: 400; }
   .logo { left: 50%; transform: translateX(-50%) rotate(-6deg); width: clamp(110px, 30vw, 170px); top: 4px; }
   .stage { padding-top: clamp(64px, 12vw, 96px); }
   .char { opacity: .35; }
-  .hero { left: -4vw; width: 34vw; height: 70vw; bottom: 180px; }
+  .hero { left: -8vw; width: 46vw; height: 69vw; bottom: 180px; }
   .leviathan { left: auto; right: -6vw; width: 44vw; height: 80vw; bottom: 180px; }
   .bar {
     height: auto; padding: 8px 12px 10px; row-gap: 6px; width: min(96vw, 560px);
@@ -370,7 +376,7 @@ table.modes th { font-family: var(--f-lil); font-weight: 400; }
   .read .k { font-size: 9px; } .read .v { font-size: 13px; }
   .banner { min-height: 20px; margin-top: 2px; font-size: 12px; }
   .ante { display: none; }
-  .hero { left: calc(50% - var(--g) / 2 - var(--g) * .62); }
+  .hero { left: calc(50% - var(--g) / 2 - var(--g) * .66); }
 }
 @media (max-height: 300px) and (min-aspect-ratio: 5/4) {
   :root { --g: min(100vh - 92px, 40vw); }
