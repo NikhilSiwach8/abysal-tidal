@@ -64,8 +64,20 @@ cd .. && math-sdk/env/bin/python tools/audit_publish.py --books
 | mystery_deep | 650× | 60% nothing / 30% Undertow / 10% Abyssal |
 
 Hit rates follow these ratios exactly (see `game_optimization.py`). With fixed buy prices,
-the average value of a tier differs between modes: the optimizer re-weights each mode's
-books to land on 96.70%.
+the average value of a tier differs between modes, so each mode's books are re-weighted to
+land on 96.70%.
+
+**Optimizer.** `run.py` uses `optimize_weights.py`, a deterministic solver: each criteria
+gets exactly its target probability, and its books are re-weighted by a power tilt
+`w ∝ (1 + payout)^θ` with θ bisected to hit the target average win exactly. The SDK's
+Rust optimizer (`OPTIMIZER=rust`) ignored the hit-rate targets in the multi-criteria modes
+(base came out at 53.6% RTP), so it is not used by default. Book IDs and payouts are
+untouched, so the SDK's book hashes and `execute_all_tests` still verify.
+
+Final audit (`tools/audit_publish.py --books`, 100,000 books per mode): every mode at
+96.7000%, spread 0.0000%, base hit rate 1 in 3.18, max win 100,000× reachable in every
+mode (base about 1 in 5.6M). The SDK's Studio risk checks flag volatility/tail limits in
+base, hunt, ultra, mystery and mystery_deep, which caps the max base bet template at $100.
 
 ## Frontend
 

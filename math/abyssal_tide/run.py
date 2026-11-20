@@ -3,7 +3,7 @@
     python run.py [num_sims] [sims|opt|all] [modes]
 
     num_sims   books per mode (default 100000)
-    stage      sims = simulate only, opt = optimize + analyse + verify existing books,
+    stage      sims = simulate only, opt = weight-solve + analyse + verify existing books,
                all  = everything (default)
     modes      comma-separated subset, e.g. base,bonus (default: all 8 modes)
 """
@@ -14,6 +14,7 @@ import sys
 from game_config import GameConfig
 from gamestate import GameState
 from game_optimization import OptimizationSetup
+import optimize_weights
 from optimization_program.run_script import OptimizationExecution
 from src.state.run_sims import create_books
 from src.write_data.write_configs import generate_configs
@@ -53,7 +54,12 @@ if __name__ == "__main__":
 
     if stage in ("opt", "all"):
         generate_configs(gamestate)
-        OptimizationExecution().run_all_modes(config, modes, rust_threads)
+        if os.environ.get("OPTIMIZER") == "rust":
+            # SDK's stochastic optimizer; did not honour the multi-criteria hit rates for this game
+            OptimizationExecution().run_all_modes(config, modes, rust_threads)
+        else:
+            # Deterministic solver: exact hit rate and average win per criteria (see optimize_weights.py)
+            optimize_weights.main(modes)
         generate_configs(gamestate)
         create_stat_sheet(gamestate, custom_keys=[{"symbol": "scatter"}])
         execute_all_tests(config)
