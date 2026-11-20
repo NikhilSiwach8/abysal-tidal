@@ -9,6 +9,7 @@ import { DEFS, HERO_SVG, LEVIATHAN_SVG, LOGO_SVG, NOISE_URL, POWER_ICONS, UI_ICO
 import bgFar from "./assets/bg/bg_layer_far_fog.webp"
 import bgMid from "./assets/bg/bg_layer_mid_stacks_ship.webp"
 import bgFront from "./assets/bg/bg_layer_front_kelp.webp"
+import bgPortrait from "./assets/bg/bg_portrait.webp"
 import { SYMBOL_NAMES, SYMBOL_SPRITES, symbolSvg, type Code } from "./symbols"
 import { sfx } from "./audio"
 import { setSocial, t, translateTree } from "./text"
@@ -121,6 +122,7 @@ function sceneHtml(): string {
       <div class="bg-layer bg-mid" style="background-image:url(${bgMid})"></div>
       <div class="environment-fog"></div>
       <div class="bg-layer bg-front" style="background-image:url(${bgFront})"></div>
+      <div class="bg-layer bg-portrait" style="background-image:url(${bgPortrait})"></div>
       <div class="particles">${bubbles}${flakes}</div>
     </div>`
 }
