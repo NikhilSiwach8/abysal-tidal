@@ -109,7 +109,10 @@ right-sized WebP copies in `frontend/src/assets/`, produced by:
 python3 tools/prepare_game_assets.py
 ```
 
-Re-run it after replacing any art. Symbols sit on the parchment multiplier-spot tile
+Re-run it after replacing any art. The characters are split into animation layers (scarf, coat
+tail and eyes for the hero; head and gills for the Leviathan) by `python3 tools/rig_characters.py`;
+re-run it after replacing `hero_idle` or `leviathan_idle`. Ambient loops follow section 9 of
+`art/ABYSSAL_TIDE_ASSET_PROMPTS.txt` and switch off under the OS "reduce motion" setting. Symbols sit on the parchment multiplier-spot tile
 (tinted by spot level); specials are full panels; the Leviathan mega symbol is sliced
 per cell. Painted overlay titles are used except in social-casino sessions, which show
 translated text because several titles contain restricted words ("WIN").

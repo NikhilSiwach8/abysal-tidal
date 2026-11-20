@@ -35,8 +35,7 @@ JOBS = [
     ("symbols/S_compass.png", "sym/S.webp", 320),
     ("symbols/S2_abyssal_compass.png", "sym/S2.webp", 320),
     ("symbols/H6_leviathan_mega.png", "sym/H6.webp", 1254),  # sliced up to 6x6
-    # characters
-    ("leviathan/leviathan_idle.webp", "chars/leviathan_idle.webp", 1620),
+    # characters: rigged layers come from tools/rig_characters.py
     # UI
     ("ui/grid_frame.png", "ui/grid_frame.webp", 1100),
     ("ui/hp_bar_frame.png", "ui/hp_frame.webp", 1400),

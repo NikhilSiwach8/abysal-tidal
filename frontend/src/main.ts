@@ -11,7 +11,6 @@ import bgFar from "./assets/bg/bg_layer_far_fog.webp"
 import bgMid from "./assets/bg/bg_layer_mid_stacks_ship.webp"
 import bgFront from "./assets/bg/bg_layer_front_kelp.webp"
 import bgPortrait from "./assets/bg/bg_portrait.webp"
-import heroIdle from "./assets/chars/hero_idle.webp"
 import heroVictory from "./assets/chars/hero_victory.webp"
 import { CODES, SYMBOL_NAMES, symbolSvg, symbolUrl, type Code } from "./symbols"
 import { sfx } from "./audio"
@@ -120,14 +119,16 @@ function sceneHtml(): string {
     return `<img class="particle bubble" src="${bubbleArt[i % bubbleArt.length]}" alt="" style="left:${left}%;width:${size}px;animation-delay:-${(i * 1.2).toFixed(1)}s">`
   }).join("")
   const flakes = Array.from({ length: 7 }, (_, i) =>
-    `<img class="particle flake" src="${flakeArt[i % flakeArt.length]}" alt="" style="left:${12 + i * 13}%;width:${20 + (i % 3) * 7}px;animation-delay:-${(i * 1.3).toFixed(1)}s;animation-duration:${6 + (i % 4)}s">`,
+    `<img class="particle flake" src="${flakeArt[i % flakeArt.length]}" alt="" style="left:${12 + i * 13}%;width:${20 + (i % 3) * 7}px;--rot:${180 + ((i * 47) % 181)}deg;--sway:${14 + (i % 3) * 8}px;animation-delay:-${(i * 1.3).toFixed(1)}s;animation-duration:${6 + (i % 4)}s">`,
   ).join("")
   return `
     <div class="background-scene" aria-hidden="true">
       <div class="bg-layer bg-far" style="background-image:url(${bgFar})"></div>
+      <div class="bg-rays"><i></i><i></i><i></i><i></i></div>
       <div class="bg-layer bg-mid" style="background-image:url(${bgMid})"></div>
       <div class="environment-fog"></div>
-      <div class="bg-layer bg-front" style="background-image:url(${bgFront})"></div>
+      <div class="bg-layer bg-front kelp-l" style="background-image:url(${bgFront})"></div>
+      <div class="bg-layer bg-front kelp-r" style="background-image:url(${bgFront})"></div>
       <div class="bg-layer bg-portrait" style="background-image:url(${bgPortrait})"></div>
       <div class="particles">${bubbles}${flakes}</div>
     </div>`
@@ -141,11 +142,20 @@ function buildDom() {
   app.innerHTML = `
     ${sceneHtml()}
     <div class="char hero"><div class="breathe">
-      <img class="hero-pose idle" src="${heroIdle}" alt="" draggable="false">
+      <div class="hero-pose idle rig hero-rig">
+        <img class="rig-l" src="${asset("chars/hero_coat")}" alt="" draggable="false" data-part="coat">
+        <img class="rig-l" src="${asset("chars/hero_body")}" alt="" draggable="false">
+        <img class="rig-l" src="${asset("chars/hero_scarf")}" alt="" draggable="false" data-part="scarf">
+        <img class="rig-l" src="${asset("chars/hero_eyes")}" alt="" draggable="false" data-part="eyes">
+      </div>
       <img class="hero-pose victory" src="${heroVictory}" alt="" draggable="false">
     </div></div>
-    <div class="char leviathan"><div class="breathe"><img class="lev-img" src="${asset("chars/leviathan_idle")}" alt="" draggable="false"></div></div>
-    <div class="logo"><img class="logo-img" src="${asset("lettering/logo")}" alt="Abyssal Tide" draggable="false"><span class="tag" hidden></span></div>
+    <div class="char leviathan"><div class="breathe"><div class="rig lev-rig">
+      <img class="rig-l" src="${asset("chars/lev_body")}" alt="" draggable="false">
+      <img class="rig-l" src="${asset("chars/lev_head")}" alt="" draggable="false" data-part="head">
+      <img class="rig-l" src="${asset("chars/lev_gills")}" alt="" draggable="false" data-part="gills">
+    </div></div></div>
+    <div class="logo"><img class="logo-img" src="${asset("lettering/logo")}" alt="Abyssal Tide" draggable="false"><span class="logo-shine" style="--logo:url(${asset("lettering/logo")})"></span><span class="tag" hidden></span></div>
     <main class="stage">
       <section class="boss" aria-label="Leviathan health">
         <div class="boss-head"><span class="tier">BASE GAME</span><span class="tab">LEVIATHAN HP</span><span class="fs"></span></div>
@@ -390,7 +400,7 @@ async function countUpOverlayInner(title: string, units: number, ms: number) {
   const p = overlay(`${heading(title)}<div class="amount" id="${amountId}">${fmt(0)}</div>`, ms)
   sfx.bigWin()
   const start = performance.now()
-  const dur = Math.min(ms * 0.6, 2200) * speed()
+  const dur = ms * 0.6 * speed()
   const tick = () => {
     const el = document.getElementById(amountId)
     if (!el) return
