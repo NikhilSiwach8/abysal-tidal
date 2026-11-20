@@ -222,7 +222,7 @@ button:disabled { cursor: not-allowed; opacity: .45; filter: grayscale(.5); }
 .boss-head .tab { font-family: var(--f-mark); background: var(--ink); color: var(--text); padding: 3px 14px 1px; border-radius: 8px 8px 0 0; letter-spacing: .08em; }
 .hp { position: relative; height: clamp(30px, calc(var(--g) * .06), 50px); }
 .hp::before { content: ""; position: absolute; inset: 30% 4% 18% 4%; border-radius: 999px; background: rgba(23, 27, 29, .85); }
-.hp-fill { position: absolute; left: 4%; top: 30%; bottom: 18%; width: 92%; border-radius: 999px; background-size: 100% 100%; background-position: left center; transition: width .45s cubic-bezier(.3, 1.2, .5, 1); }
+.hp-fill { --dmg: 0%; position: absolute; left: 4%; right: 4%; top: 30%; bottom: 18%; border-radius: 999px; background-size: 100% 100%; clip-path: inset(0 0 0 var(--dmg) round 999px); transition: clip-path .45s cubic-bezier(.3, 1.2, .5, 1); }
 .hp-ticks { position: absolute; inset: 30% 4% 18% 4%; background: repeating-linear-gradient(90deg, transparent 0 calc(12.5% - 2px), rgba(23,27,29,.55) calc(12.5% - 2px) 12.5%); }
 .hp-frame { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; }
 .hp-text { z-index: 1; padding-top: 4%; }
@@ -231,8 +231,9 @@ button:disabled { cursor: not-allowed; opacity: .45; filter: grayscale(.5); }
 @keyframes shake { 20% { transform: translateX(-5px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
 .track { position: relative; height: 34px; margin-top: 4px; }
 .track::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 3px; background: var(--ink); transform: translateY(-50%); }
-.track .cap { position: absolute; left: 0; top: 50%; width: 12px; height: 12px; background: var(--ink); transform: translate(-50%, -50%) rotate(45deg); }
-.node { position: absolute; top: 50%; width: 32px; height: 32px; transform: translate(-50%, -50%); }
+.track .cap { position: absolute; left: 4%; top: 50%; width: 12px; height: 12px; background: var(--ink); transform: translate(-50%, -50%) rotate(45deg); }
+/* nodes sit on the HP channel (4%–96% of the frame) at their damage threshold */
+.node { position: absolute; top: 50%; left: calc(4% + 92% * var(--at)); width: 32px; height: 32px; transform: translate(-50%, -50%); }
 .node img { width: 100%; height: 100%; display: block; transition: filter .3s; }
 /* lit = teal disc, final node = gold; the black pictogram stays black */
 .node.lit img { filter: sepia(1) hue-rotate(125deg) saturate(3.2) brightness(.95); }
@@ -509,3 +510,36 @@ table.modes th { font-family: var(--f-lil); font-weight: 400; }
   .banner { display: none; }
   .logo { width: 70px; }
 }
+
+/* ---------------------------------------------------------------- depth wheel (mystery buys) */
+.wheel-ov { cursor: default; }
+.wheel-card { position: relative; z-index: 1; display: grid; justify-items: center; gap: 6px; padding: 12px; animation: zoomin .5s cubic-bezier(.2, 1.4, .4, 1); }
+.wheel-title { margin: 0; font-family: var(--f-mark); font-size: clamp(26px, 4.4vw, 54px); line-height: 1; color: var(--text); text-shadow: 0 4px 0 var(--ink), 0 0 24px rgba(0,0,0,.5); transform: rotate(-2deg); }
+.wheel-sub { margin: 0; font-family: var(--f-lil); font-size: clamp(13px, 1.6vw, 18px); letter-spacing: .12em; color: var(--teal-hi); text-shadow: 0 2px 0 var(--ink); text-transform: uppercase; }
+.wheel { --w: min(64vh, 82vw, 560px); position: relative; width: var(--w); height: var(--w); margin-top: 8px; }
+.wheel-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 10px 18px rgba(0,0,0,.55)); }
+.wheel-glow { position: absolute; inset: -9%; width: 118%; height: 118%; opacity: .55; pointer-events: none; animation: wheelglow 2.4s ease-in-out infinite alternate; }
+@keyframes wheelglow { to { opacity: .9; transform: scale(1.03); } }
+.wheel-rot { transform-origin: 0 0; }
+.wheel .rim { fill: #e9e2cf; stroke: var(--ink); stroke-width: 5; }
+.wheel .peg { fill: var(--ink); }
+.wheel .edge { fill: none; stroke: var(--ink); stroke-width: 3.5; }
+.wheel .sep { stroke: var(--ink); stroke-width: 2.2; }
+.wheel .slice { stroke: none; transition: filter .3s; }
+.wheel .slice.calm { fill: #262e31; }
+.wheel .wl { font-family: var(--f-lil); fill: #fff; stroke: var(--ink); stroke-width: 2.6px; paint-order: stroke; letter-spacing: .04em; }
+.wheel .hub { fill: #e9e2cf; stroke: var(--ink); stroke-width: 4; }
+.wheel-hub { position: absolute; left: 50%; top: 50%; width: 25%; transform: translate(-50%, -50%); pointer-events: none; filter: drop-shadow(0 2px 0 rgba(0,0,0,.35)); }
+/* harpoon-tip pointer at 12 o'clock */
+.wheel-pointer { position: absolute; z-index: 2; left: 50%; top: -3.5%; width: 9%; height: 13%; transform: translateX(-50%); background: var(--ink); clip-path: polygon(50% 100%, 0 18%, 22% 0, 50% 10%, 78% 0, 100% 18%); filter: drop-shadow(0 0 6px var(--teal-hi)); }
+.wheel-pointer::after { content: ""; position: absolute; inset: 22% 26% 18%; background: var(--teal-hi); clip-path: polygon(50% 100%, 0 12%, 100% 12%); }
+.landed .wheel .slice:not(.hit), .landed-calm .wheel .slice:not(.hit) { filter: brightness(.55) saturate(.7); }
+.wheel .slice.hit { animation: slicehit .5s ease-in-out 3 alternate; }
+@keyframes slicehit { to { filter: brightness(1.45) drop-shadow(0 0 6px #fff); } }
+.landed .wheel-glow { animation: none; opacity: 1; filter: brightness(1.4); }
+.wheel-result { min-height: 1.6em; font-family: var(--f-lil); font-size: clamp(16px, 2.4vw, 28px); text-align: center; text-shadow: 0 2px 0 var(--ink); }
+.wheel-result b { font-family: var(--f-mark); font-weight: normal; font-size: 1.25em; letter-spacing: .04em; }
+.wheel-result:not(:empty) { animation: zoomin .45s cubic-bezier(.2, 1.4, .4, 1); }
+@media (prefers-reduced-motion: reduce) { .wheel-glow, .wheel .slice.hit, .wheel-card, .wheel-result:not(:empty) { animation: none; } }
+.wheel-odds { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; font-family: var(--f-lil); font-size: clamp(12px, 1.4vw, 16px); text-shadow: 0 2px 0 var(--ink); }
+.wheel-odds i { display: inline-block; width: .8em; height: .8em; margin-right: 5px; border: 2px solid var(--ink); border-radius: 50%; vertical-align: -1px; }

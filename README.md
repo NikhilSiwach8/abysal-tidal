@@ -98,6 +98,11 @@ npm run build                    # dist/ (relative paths, static only)
   `tier-undertow`, `tier-maelstrom`, `tier-abyssal` (far strongest, mid medium,
   front subtle; symbols, UI and characters are never filtered). Brightness is
   calibrated to -0/-10/-20/-30%; CSS filters approximate a LUT.
+* Mystery buys open the Depth Wheel first. Slice sizes are the published odds (measured from
+  the LUT weights: mystery 60.00/25.00/10.00/5.00%, mystery_deep 60.00/30.00/10.00%), and it
+  always lands on the outcome already in the book (its `selectedMode` event, or none).
+* Leviathan HP bar: damage clips the fill from the left, and power-up node *n* sits exactly
+  where the bar's edge is at 25×*n* damage.
 * QA helper (demo only): `?demoBook=<id>` forces a demo book; showcase IDs are in `public/demo/showcase.json`.
 
 ## Art

@@ -162,7 +162,7 @@ function buildDom() {
         <div class="boss-head"><span class="tier">BASE GAME</span><span class="tab">LEVIATHAN HP</span><span class="fs"></span></div>
         <div class="hp"><div class="hp-fill" style="background-image:url(${asset("ui/hp_fill")})"></div><div class="hp-ticks"></div><img class="hp-frame" src="${asset("ui/hp_frame")}" alt="" draggable="false"><div class="hp-text">${BOSS_HP} / ${BOSS_HP}</div></div>
         <div class="track"><span class="cap"></span>${LADDER.map(
-          (k, i) => `<span class="node${i === 7 ? " final" : ""}" style="left:${(i + 1) * 12.5}%" title="${POWER_NAMES[k]} at ${(i + 1) * STEP}"><img src="${asset(`ui/pu/${i + 1}_${k}`)}" alt="" draggable="false"></span>`,
+          (k, i) => `<span class="node${i === 7 ? " final" : ""}" style="--at:${((i + 1) * STEP) / BOSS_HP}" title="${POWER_NAMES[k]} at ${(i + 1) * STEP}"><img src="${asset(`ui/pu/${i + 1}_${k}`)}" alt="" draggable="false"></span>`,
         ).join("")}</div>
       </section>
       <section class="grid" aria-label="Game board" style="--tile-mask:url(${asset("sym/tile")})">
@@ -290,7 +290,9 @@ function updateBetReadout() {
 function setDamage(d: number, hit = false) {
   st.damage = d
   const left = Math.max(0, BOSS_HP - d)
-  $(".hp-fill").style.width = `${(left / BOSS_HP) * 100}%`
+  // The fill art always spans the frame's channel; damage clips it away from the left,
+  // so the bar's edge reaches node i exactly at (i + 1) * STEP damage.
+  $(".hp-fill").style.setProperty("--dmg", `${(Math.min(d, BOSS_HP) / BOSS_HP) * 100}%`)
   $(".hp-text").textContent = left === 0 ? "SLAIN" : `${left} / ${BOSS_HP}`
   document.querySelectorAll<HTMLElement>(".node").forEach((n, i) => {
     const lit = d >= (i + 1) * STEP
@@ -381,6 +383,130 @@ function overlay(html: string, ms: number): Promise<void> {
 function heading(text: string): string {
   const img = isSocial() ? null : titleImage(text)
   return img ? `<h1 class="title-img"><img src="${img}" alt="${text}" draggable="false"></h1>` : `<h1>${t(text)}</h1>`
+}
+
+// ================================================================ depth wheel (mystery buys)
+/**
+ * Slices of the Depth Wheel, clockwise from the pointer. Sizes are the real odds of
+ * each outcome in that mode's published weights (60% no bonus, the rest by tier), so
+ * the wheel shows exactly what the book decided. "" is the no-bonus outcome.
+ */
+const WHEEL: Record<string, [string, number][]> = {
+  mystery: [["", 20], ["S", 25], ["", 20], ["U", 10], ["", 20], ["H", 5]],
+  mystery_deep: [["", 30], ["S", 30], ["", 30], ["H", 10]],
+}
+const WHEEL_FILL: Record<string, string> = { "": "#262e31", S: "#e9ad2c", U: "#2bb3a3", H: "#8a47d6" }
+const WHEEL_SPIN_MS = 4600
+
+function wheelSvg(slices: [string, number][]): string {
+  const pt = (a: number, r: number) => `${(r * Math.sin((a * Math.PI) / 180)).toFixed(2)},${(-r * Math.cos((a * Math.PI) / 180)).toFixed(2)}`
+  let a = 0
+  let out = ""
+  slices.forEach(([k, w], i) => {
+    const a0 = a
+    const a1 = a + w * 3.6
+    a = a1
+    const mid = (a0 + a1) / 2
+    const large = a1 - a0 > 180 ? 1 : 0
+    const name = k ? TIER[k]!.name.toUpperCase() : t("STILL WATER")
+    const label = name
+    const fs = Math.min(9.5, (a1 - a0) * 0.5)
+    // Fit the label between the hub (r 30) and the rim (r 84).
+    const fit = label.length * fs * 0.62 > 50 ? ` textLength="50" lengthAdjust="spacingAndGlyphs"` : ""
+    out += `<path class="slice${k ? "" : " calm"}" data-i="${i}" d="M0,0 L${pt(a0, 88)} A88,88 0 ${large} 1 ${pt(a1, 88)} Z" fill="${WHEEL_FILL[k]}"/>`
+    out += `<g transform="rotate(${mid.toFixed(2)})"><text class="wl" x="0" y="-57" font-size="${fs.toFixed(1)}"${fit} transform="rotate(-90 0 -57)" text-anchor="middle" dominant-baseline="central">${label}</text></g>`
+    out += `<line x1="0" y1="0" x2="${pt(a0, 88).split(",")[0]}" y2="${pt(a0, 88).split(",")[1]}" class="sep"/>`
+  })
+  let pegs = ""
+  for (let i = 0; i < 40; i++) pegs += `<circle cx="${pt(i * 9, 93).split(",")[0]}" cy="${pt(i * 9, 93).split(",")[1]}" r="1.9" class="peg"/>`
+  return `<svg class="wheel-svg" viewBox="-100 -100 200 200" aria-hidden="true">
+    <circle r="97" class="rim"/>${pegs}<g class="wheel-rot">${out}<circle r="88" class="edge"/></g>
+    <circle r="27" class="hub"/></svg>`
+}
+
+/** Total odds per outcome, shown under the wheel. */
+function wheelOdds(slices: [string, number][]): string {
+  const total = new Map<string, number>()
+  for (const [k, w] of slices) total.set(k, (total.get(k) ?? 0) + w)
+  return [...total].map(([k, w]) => `<span><i style="background:${WHEEL_FILL[k]}"></i>${k ? TIER[k]!.name : t("Still water")} ${w}%</span>`).join("")
+}
+
+/**
+ * Mystery buys spin the Depth Wheel first and land it on the outcome already in the
+ * book (its selectedMode event, or no bonus). Slam-stop and Space skip to the stop,
+ * and players with reduced motion get the result without the spin.
+ */
+async function depthWheel(mode: string, tier: string | null): Promise<void> {
+  const slices = WHEEL[mode]
+  if (!slices) return
+  const key = tier ?? ""
+  const hits = slices.map((s, i) => [s, i] as const).filter(([s]) => s[0] === key)
+  if (!hits.length) return
+  // Pick one matching slice (weighted by size) and a point well inside it.
+  let r = Math.random() * hits.reduce((n, [s]) => n + s[1], 0)
+  let pick = hits[0]!
+  for (const hEntry of hits) {
+    r -= hEntry[0][1]
+    if (r <= 0) { pick = hEntry; break }
+  }
+  const start = slices.slice(0, pick[1]).reduce((n, s) => n + s[1], 0) * 3.6
+  const width = pick[0][1] * 3.6
+  const target = start + width * (0.2 + Math.random() * 0.6)
+  const turns = 5
+  const finalDeg = turns * 360 - target
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches
+  const name = MODES.find((m) => m.id === mode)?.name ?? ""
+
+  const el = h(`<div class="overlay wheel-ov" role="dialog" aria-label="${t("Depth Wheel")}"><img class="ov-backdrop" src="${asset("fx/overlay_backdrop")}" alt="">
+    <div class="wheel-card"><h2 class="wheel-title">${t("THE DEPTH WHEEL")}</h2><p class="wheel-sub">${name}</p>
+      <div class="wheel"><img class="wheel-glow" src="${asset("fx/glow_ring")}" alt=""><div class="wheel-pointer"></div>${wheelSvg(slices)}<img class="wheel-hub" src="${asset("ui/illus_mystery")}" alt=""></div>
+      <div class="wheel-odds">${wheelOdds(slices)}</div>
+      <div class="wheel-result" aria-live="polite"></div></div></div>`)
+  translateTree(el)
+  document.body.append(el)
+  const rot = el.querySelector<SVGGElement>(".wheel-rot")!
+  const ms = reduce ? 0 : WHEEL_SPIN_MS * speed()
+  let skip: () => void = () => {}
+  const skipped = new Promise<void>((res) => (skip = res))
+  const onKey = (e: KeyboardEvent) => {
+    if (e.code === "Space") { e.preventDefault(); skip() }
+  }
+  addEventListener("keydown", onKey, true)
+  el.addEventListener("pointerdown", () => skip())
+  const slamWatch = setInterval(() => { if (st.slam) skip() }, 80)
+
+  await new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)))
+  if (ms > 0) {
+    sfx.spin()
+    const anim = rot.animate([{ transform: "rotate(0deg)" }, { transform: `rotate(${finalDeg}deg)` }],
+      { duration: ms, easing: "cubic-bezier(.12,.62,.08,1)", fill: "forwards" })
+    await Promise.race([anim.finished.catch(() => {}), skipped])
+    anim.finish()
+  } else {
+    rot.style.transform = `rotate(${finalDeg}deg)`
+  }
+  clearInterval(slamWatch)
+  rot.querySelector(`.slice[data-i="${pick[1]}"]`)?.classList.add("hit")
+  el.classList.add(tier ? "landed" : "landed-calm")
+  const res = el.querySelector(".wheel-result")!
+  if (tier) {
+    sfx.pearl()
+    res.innerHTML = `<b style="color:${WHEEL_FILL[tier]}">${TIER[tier]!.name.toUpperCase()}</b> ${t("unlocked")}`
+  } else {
+    res.innerHTML = `<b>${t("STILL WATER")}</b> · ${t("no bonus this time — the spin plays on")}`
+  }
+  // Give the result a moment, then let a tap or Space continue early.
+  const hold = new Promise<void>((r2) => setTimeout(r2, 1500 * speed()))
+  let cont: () => void = () => {}
+  const tapped = new Promise<void>((r2) => (cont = r2))
+  setTimeout(() => {
+    el.addEventListener("pointerdown", () => cont())
+    removeEventListener("keydown", onKey, true)
+    addEventListener("keydown", function k(e) { if (e.code === "Space") { e.preventDefault(); cont(); removeEventListener("keydown", k, true) } }, true)
+  }, 250)
+  await Promise.race([hold, tapped])
+  removeEventListener("keydown", onKey, true)
+  el.remove()
 }
 
 /** Hero switches to the victory pose for big-win and feature-end celebrations. */
@@ -564,6 +690,10 @@ async function playEvents(events: BookEvent[], opts: { mode: string }) {
   setTierUi(null)
   let feature = false
   let finalUnits = 0
+  if (WHEEL[opts.mode]) {
+    const sel = events.find((e) => e.type === "selectedMode")
+    await depthWheel(opts.mode, sel ? (sel.mode as string) : null)
+  }
   for (const e of events) {
     switch (e.type) {
       case "reveal":
@@ -620,7 +750,7 @@ async function playEvents(events: BookEvent[], opts: { mode: string }) {
         break
     }
   }
-  if (!feature && (opts.mode === "mystery" || opts.mode === "mystery_deep")) banner("THE DEPTHS STAY QUIET")
+  if (!feature && (opts.mode === "mystery" || opts.mode === "mystery_deep")) banner("STILL WATER · NO BONUS")
   else banner(finalUnits > 0 ? `WIN ${fmt(bookToApi(finalUnits))}` : "")
   if (!feature) {
     const label = bigWinLabel(finalUnits / 100)
@@ -775,8 +905,8 @@ function openBuy() {
     <div class="buy-grid">
       ${buyCard("hunt", "Leviathan Hunt", "Every bonus 10× as likely, every spin", art("illus_hunt"))}
       ${buyCard("deep_hunt", "Trench Hunt", "Maelstrom & Abyssal 150× as likely", art("illus_trench"))}
-      ${buyCard("mystery", "Mystery Depths", "A hidden bonus — or nothing at all", art("illus_mystery", `<span class="pct">10%</span>`))}
-      ${buyCard("mystery_deep", "Abyssal Mystery", "Undertow or Abyssal — or nothing", art("illus_mystery", `<span class="pct">10%</span>`))}
+      ${buyCard("mystery", "Mystery Depths", "A hidden bonus — or nothing at all", art("illus_mystery", `<span class="pct">40%</span>`))}
+      ${buyCard("mystery_deep", "Abyssal Mystery", "Undertow or Abyssal — or nothing", art("illus_mystery", `<span class="pct">40%</span>`))}
       ${buyCard("bonus", "Riptide", "10 free spins, spots start at 1×", fsArt(1), true)}
       ${buyCard("super", "Undertow", "10 free spins, spots start at 2×", fsArt(2))}
       ${buyCard("ultra", "Maelstrom", "10 free spins, spots start at 4×", fsArt(4))}
