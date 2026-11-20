@@ -1,0 +1,793 @@
+=====================================================================
+ ABYSSAL TIDE — ASSET GENERATION PROMPTS (copy-paste ready)
+=====================================================================
+
+What this file is
+-----------------
+Image and animation prompts for every visual asset in Abyssal Tide, written to
+reproduce the *look* of the reference recording (ink-wash anime illustration,
+grey fog, one hot accent colour, dry-brush lettering, parallax idle animation)
+applied to OUR original theme: a hooded harpooner hunting the Leviathan, a sea
+serpent, in a sunken deep-sea world.
+
+Do not add the reference game's name, logo, characters, symbols or studio name
+to any prompt, and do not upload its screenshots as image references. Use your
+own generated "style anchor" (prompt 0.1) as the only reference image. That keeps
+every asset original and consistent with each other.
+
+Every prompt below is self-contained: it already includes the shared style
+block, so you can paste any single prompt into an image generator as-is.
+Works with Midjourney, GPT-Image / DALL-E, Flux, Ideogram, Leonardo, SDXL.
+"Settings:" lines tell you aspect ratio and background handling.
+
+
+---------------------------------------------------------------------
+ HOW TO KEEP THE ART CONSISTENT (read once)
+---------------------------------------------------------------------
+1. Generate prompt 0.1 (STYLE ANCHOR) first. Pick the best result.
+2. Use that image as the style reference for EVERY other asset:
+     Midjourney:  add  --sref <anchor-image-url> --sw 200
+     GPT-Image / Ideogram / Leonardo / Flux: attach the anchor as a style
+     reference image and keep the text prompt unchanged.
+3. Generate the hero and the Leviathan reference sheets (2.1, 3.1) next and use
+   them as character references (Midjourney: --cref <url> --cw 100) for every
+   pose, animation frame and symbol that shows those characters.
+4. Keep one seed per asset family (Midjourney --seed, Flux/SDXL seed field).
+5. Never change the palette hex codes, light direction (soft top-left), or
+   line weight wording between prompts.
+6. For symbols: generate the EMPTY TILE (4.0) once and composite each symbol
+   (generated isolated) onto it in code/Photoshop. Identical frames = consistent grid.
+
+Palette (use these exact values everywhere)
+   Ink black        #171B1D     Ink grey        #222A2D
+   Fog paper        #DCDFD7     Fog paper dark  #C9CEC6
+   Abyss teal       #2BB3A3     Teal glow       #5FE3D2
+   Ember coral      #E8553E     Gold            #FFD36B
+   Abyssal purple   #A26FF0     Highlight white #F3F5F2
+Rule: every image is 90% greyscale ink + fog. Colour appears ONLY as small
+accents: teal (hero, Wild, magic), ember coral (embers, coral fronds, danger,
+high symbol panels), gold (treasure, big wins), purple (Abyssal tier only).
+
+Fonts (to match the brush/UI look; all open-licence, bundle with @fontsource)
+   Logo & big titles:  generated as images (prompts 6.x) — dry-brush lettering
+   Headings/buttons:   "Permanent Marker"   (fallback "Rock Salt")
+   Numbers/labels:     "Lilita One"         (heavy, rounded, like the reference UI)
+   Body/rules text:    "Outfit" 400/600/800
+   UI label colour on dark bar: teal #5FE3D2; values: white #F3F5F2.
+
+
+---------------------------------------------------------------------
+ SHARED STYLE BLOCK (already pasted inside every prompt below)
+---------------------------------------------------------------------
+STYLE: dark fantasy anime illustration, semi-realistic cel shading with clean
+confident black ink linework of varied weight, Japanese sumi-e ink-wash
+painting influence, desaturated greyscale palette of ink black #171B1D and fog
+grey #DCDFD7, a single restrained accent colour, soft diffused light from the
+top left, misty atmosphere, subtle paper grain texture, crisp edges, high
+detail, mobile slot game art, professional 2D game asset.
+
+NEGATIVE (paste into the negative field, or append "Avoid: ..." for tools
+without one):
+text, letters, watermark, signature, logo, UI, frame borders (unless asked),
+photorealistic, 3D render, plastic, glossy CGI, oversaturated colours, rainbow
+colours, neon, lens flare, blurry, low resolution, jpeg artifacts, extra limbs,
+extra fingers, deformed hands, duplicate characters, cropped head, busy
+background (for isolated assets), samurai, ninja, oni mask, katana, bamboo,
+torii gate, pagoda, cherry blossoms, Japanese castle.
+(The last line keeps us away from the reference game's subject matter.)
+
+
+=====================================================================
+ 0. STYLE ANCHOR
+=====================================================================
+
+0.1  STYLE ANCHOR — key art
+Settings: 16:9, 2048x1152.
+Prompt:
+Key art of a deep underwater world: a lone hooded harpooner stands on a rocky
+ledge on the left facing right, a colossal horned sea serpent rises from the
+abyss on the right with its jaws open, a sunken ship's broken mast and jagged
+sea stacks fade into thick grey fog between them, shafts of pale light fall
+from the surface far above, tall kelp strands sway in silhouette in the
+foreground, tiny drifting particles of marine snow and a few glowing ember-coral
+specks float in the water. Dark fantasy anime illustration, semi-realistic cel
+shading with clean confident black ink linework of varied weight, Japanese
+sumi-e ink-wash painting influence, desaturated greyscale palette of ink black
+#171B1D and fog grey #DCDFD7, accents only in teal #2BB3A3 (the harpooner's
+scarf and glowing eyes) and ember coral #E8553E (drifting specks, the serpent's
+throat glow), soft diffused light from the top left, layered depth with dark
+foreground silhouettes, mid-grey middle ground and pale fog background, subtle
+paper grain texture, high detail, professional 2D slot game key art.
+Avoid: text, logo, watermark, photorealistic, 3D render, oversaturated, neon,
+samurai, ninja, bamboo, pagoda, torii gate.
+
+
+=====================================================================
+ 1. BACKGROUND (generate layers separately for parallax animation)
+=====================================================================
+Final layout: game background 1600x900 (16:9) + a portrait crop 900x1600.
+The grid sits in the centre, characters stand on the left and right thirds,
+so keep the centre third calm and low-contrast.
+
+1.1  BACKGROUND — full composite (for reference and for static fallback)
+Settings: 16:9, 3200x1800. Then also 9:16, 1800x3200 (portrait version).
+Prompt:
+Empty underwater environment background for a slot game, no characters: a
+deep-sea trench seen from the seabed, layers of jagged dark sea stacks on the
+far left and far right, the broken mast and rigging of a sunken sailing ship
+leaning in the right middle ground, tall kelp strands in dark silhouette at the
+left and right edges, a soft sandy seabed with scattered rocks across the
+bottom, thick grey fog filling the centre, three diagonal shafts of pale light
+falling from the surface, tiny marine snow particles. The centre third is calm,
+low contrast and empty, the frame edges are darker. Dark fantasy anime
+illustration, semi-realistic cel shading, clean black ink linework, Japanese
+sumi-e ink-wash painting influence, desaturated greyscale palette of ink black
+#171B1D and fog grey #DCDFD7, a few small ember-coral #E8553E coral fronds on the
+rocks as the only colour, soft diffused light from the top left, misty
+atmospheric perspective, subtle paper grain texture, high detail, professional
+2D slot game background.
+Avoid: characters, creatures, text, logo, UI, photorealistic, 3D render,
+oversaturated, neon, bamboo, pagoda, mountains with temples.
+
+1.2  BACKGROUND LAYER — far: surface light and fog sky
+Settings: 16:9, 3200x1800, full-bleed (no transparency).
+Prompt:
+Far background layer for parallax: a pale misty underwater gradient from light
+fog grey #DCDFD7 at the top to mid grey #6F7F87 near the bottom, three soft
+diagonal shafts of light from the water surface, faint distant silhouettes of
+sea stacks barely visible in the haze, very soft, low detail, no foreground
+objects. Japanese sumi-e ink-wash painting, desaturated greyscale, subtle paper
+grain texture, soft diffused light from the top left, professional 2D game
+background layer.
+Avoid: characters, text, sharp details, dark foreground, oversaturated colours.
+
+1.3  BACKGROUND LAYER — middle: sea stacks and sunken ship
+Settings: 16:9, 3200x1800, TRANSPARENT background (GPT-Image: transparent;
+other tools: "isolated on plain flat white background" then remove background).
+Prompt:
+Middle-ground parallax layer, isolated on a transparent background: jagged
+mid-grey sea stack rock formations on the far left and far right, the broken
+mast, crossbeams and torn rigging of a sunken sailing ship leaning on the right
+side, a few ember-coral #E8553E coral fronds growing on the rocks, the centre is
+empty. Dark fantasy anime illustration, clean black ink linework, Japanese
+sumi-e ink-wash shading in mid greys, fog fading the lower edges, soft light
+from the top left, subtle paper grain, professional 2D game background layer.
+Avoid: characters, text, sky, full background fill, photorealistic, oversaturated.
+
+1.4  BACKGROUND LAYER — foreground: kelp and seabed
+Settings: 16:9, 3200x1800, TRANSPARENT background.
+Prompt:
+Foreground parallax layer, isolated on a transparent background: tall dark
+kelp strands with long ribbon leaves rising from the bottom left and bottom
+right corners, a dark rocky sandy seabed strip along the bottom edge with a few
+pebbles and shells, a soft pale fog band in front of the seabed, the centre and
+top are empty. Dark fantasy anime illustration, near-black ink silhouettes
+#171B1D with subtle grey rim light, clean ink linework, sumi-e ink-wash texture,
+professional 2D game background layer.
+Avoid: characters, text, sky, colourful plants, photorealistic.
+
+1.5  BACKGROUND TIER TINTS (free-spin tiers)
+Do not regenerate the art. Apply colour grading in engine (CSS filter / LUT):
+   Riptide   slight warm shift, +15% saturation on accents
+   Undertow  deeper blue-grey, -10% brightness
+   Maelstrom teal-green cast, -20% brightness, more fog
+   Abyssal   violet cast toward #A26FF0, -30% brightness, extra glow on particles
+
+
+=====================================================================
+ 2. HERO — THE HOODED HARPOONER (left of the grid)
+=====================================================================
+Display size about 320x660 on desktop. Generate tall, full body, feet visible.
+
+2.1  HERO — character reference sheet (use as --cref for everything else)
+Settings: 16:9, 2400x1350, plain flat light grey background.
+Prompt:
+Character reference sheet of an original hero: a lean hooded harpooner of the
+deep, front view, three-quarter view facing right, and back view, full body,
+standing neutral. Design: deep charcoal hood with a long torn cloth tail
+flowing behind, face hidden in shadow except two glowing teal #5FE3D2 eyes, a
+long teal #2BB3A3 scarf wrapped around the neck with trailing ends, a teal sash
+around the waist, a dark fitted coat with a lighter grey front panel showing
+fold lines, a single worn steel shoulder plate on the right shoulder, wrapped
+forearms, dark trousers and wrapped boots, holding a long thick harpoon with a
+barbed steel head. Dark fantasy anime illustration, semi-realistic cel shading,
+clean confident black ink linework of varied weight, Japanese sumi-e ink-wash
+influence, desaturated greyscale palette of ink black #171B1D and fog grey
+#DCDFD7 with teal as the only accent colour, soft light from the top left,
+high detail, professional 2D game character design sheet.
+Avoid: text labels, logo, samurai armour, katana, ninja mask, oni mask, bright
+colours, photorealistic, 3D render, extra limbs, deformed hands.
+
+2.2  HERO — in-game idle pose (main asset)
+Settings: 1:2 (portrait), 1200x2400, TRANSPARENT background.
+Prompt:
+Full body portrait of the hooded harpooner, isolated on a transparent
+background, three-quarter view facing right toward the centre of the screen,
+standing ready on a small rock ledge, feet visible, weight on the back leg,
+both hands gripping a long thick harpoon held diagonally across the body with
+the barbed steel tip pointing up and to the right, long teal #2BB3A3 scarf and
+the torn hood cloth drifting behind as if in a slow underwater current, two
+glowing teal #5FE3D2 eyes inside the dark hood, dark coat with a lighter grey
+front panel and fold lines, a worn steel shoulder plate, teal sash. Dark
+fantasy anime illustration, semi-realistic cel shading, clean confident black
+ink linework of varied weight, Japanese sumi-e ink-wash shading, desaturated
+greyscale palette of ink black #171B1D and fog grey #DCDFD7, teal is the only
+accent colour, soft rim light from the top left, high detail, professional 2D
+slot game character art.
+Avoid: background scenery, text, logo, katana, samurai, ninja, oni mask, bright
+colours, photorealistic, 3D, extra fingers, cropped feet.
+
+2.3  HERO — separated layers for idle animation (optional, best quality)
+Generate 2.2 again with the same seed and character reference, three times,
+changing only the first sentence:
+  (a) "...only the body, coat and harpoon, the scarf and hood tail removed..."
+  (b) "...only the long teal scarf, isolated..."
+  (c) "...only the torn hood cloth tail, isolated..."
+Then rig in Spine / DragonBones / After Effects (see section 9).
+
+2.4  HERO — victory pose (feature end / big win)
+Settings: 1:2, 1200x2400, TRANSPARENT background.
+Prompt:
+The hooded harpooner in a triumphant pose, isolated on a transparent
+background, three-quarter view facing right, harpoon raised high overhead in
+one hand, the barbed tip glowing teal #5FE3D2, teal #2BB3A3 scarf and hood cloth
+whipping upward in a swirl of bubbles, glowing teal eyes in the shadowed hood,
+dark coat with lighter front panel, steel shoulder plate. Dark fantasy anime
+illustration, semi-realistic cel shading, clean black ink linework, sumi-e
+ink-wash shading, desaturated greyscale palette with teal as the only accent,
+soft rim light from the top left, dynamic composition, high detail,
+professional 2D slot game character art.
+Avoid: background, text, katana, samurai, bright colours, photorealistic, 3D.
+
+
+=====================================================================
+ 3. BOSS — THE LEVIATHAN (right of the grid)
+=====================================================================
+Display size about 440x760. Tall, coiled, head high, facing left.
+
+3.1  LEVIATHAN — creature reference sheet
+Settings: 16:9, 2400x1350, plain flat light grey background.
+Prompt:
+Creature reference sheet of an original sea serpent boss, the Leviathan: side
+view, three-quarter view facing left, and a close-up of the head. Design: a
+massive serpent with a long coiled body covered in overlapping dark slate
+scales #2D3A3F, pale bone-coloured armoured belly plates, ragged teal-tinged
+dorsal fins along the spine, two long curved pale horns sweeping back from the
+skull, a wide open jaw lined with rows of jagged white teeth and an ember-coral
+#E8553E glowing throat, a single fierce amber-gold #FFD36B slit-pupil eye, three
+glowing teal #2BB3A3 gill slits on the neck, battle scars and barnacles on the
+scales. Dark fantasy anime illustration, semi-realistic cel shading, clean
+confident black ink linework, Japanese sumi-e ink-wash influence, desaturated
+greyscale palette with only amber eye, teal gills and ember throat as accents,
+soft light from the top left, high detail, professional 2D game boss design sheet.
+Avoid: text labels, logo, dragon wings, legs, arms, samurai armour, oni mask,
+bright colours, photorealistic, 3D render.
+
+3.2  LEVIATHAN — in-game idle pose (main asset)
+Settings: 3:5 (portrait), 1320x2280, TRANSPARENT background.
+Prompt:
+The Leviathan sea serpent boss, isolated on a transparent background, rising
+in a tall S-shaped coil from the bottom of the frame, head high near the top
+facing left toward the centre of the screen, jaws open in a threatening snarl
+showing rows of jagged white teeth and an ember-coral #E8553E glowing throat,
+one amber-gold #FFD36B slit-pupil eye, two long curved pale horns, glowing teal
+#2BB3A3 gill slits, dark slate overlapping scales, pale armoured belly plates,
+ragged dorsal fins, barnacles and scars. Dark fantasy anime illustration,
+semi-realistic cel shading, clean confident black ink linework of varied weight,
+Japanese sumi-e ink-wash shading, desaturated greyscale palette with amber,
+teal and ember coral as small accents only, soft rim light from the top left,
+imposing scale, high detail, professional 2D slot game boss art.
+Avoid: background scenery, text, wings, legs, arms, photorealistic, 3D, cropped head.
+
+3.3  LEVIATHAN — hit / recoil frame
+Same settings and seed as 3.2. Prompt: copy 3.2 and replace the first sentence
+with: "The Leviathan sea serpent boss recoiling from a heavy hit, isolated on a
+transparent background, head snapped back and to the right, jaws wide in a
+roar of pain, a burst of ink-black water and ember sparks at the neck," then
+keep the rest of 3.2 unchanged.
+
+3.4  LEVIATHAN — slain frame
+Same settings and seed as 3.2. Prompt: copy 3.2 and replace the first sentence
+with: "The defeated Leviathan sea serpent sinking, isolated on a transparent
+background, coil slumped and tilted, head drooping down to the right, eye dim
+and grey, gills dark, jaw slack, scales fading into ink wash and bubbles,"
+then keep the rest of 3.2 but change the palette line to "fully desaturated
+greyscale, no accent colour".
+
+
+=====================================================================
+ 4. SYMBOLS (6x6 grid, each cell displayed about 150x150 px)
+=====================================================================
+Generate at 1024x1024, deliver at 512x512. Same framing for all: subject
+centred, filling about 75% of the square, 10% safe margin on every side.
+
+4.0  EMPTY PARCHMENT TILE (base under every low and mid symbol)
+Settings: 1:1, 1024x1024, full-bleed square.
+Prompt:
+A single square game tile, front view, flat: pale weathered parchment paper
+#DCDFD7 with subtle grey ink-wash stains and fine paper grain, slightly darker
+edges, a thin rough hand-drawn black ink border #171B1D with dry-brush
+texture, softly rounded corners, completely empty in the middle. Japanese
+sumi-e ink-wash texture, flat lighting, professional 2D slot game symbol frame.
+Avoid: any symbol or drawing in the middle, text, 3D bevel, glossy, colours.
+
+---- LOW SYMBOLS: black brush ink on parchment, one small colour wash ----
+For each: Settings: 1:1, 1024x1024, TRANSPARENT background (composite onto 4.0).
+
+4.1  L1 SEAHORSE
+Prompt:
+A seahorse drawn in bold expressive black sumi-e brush strokes #171B1D, side
+view facing right, curled tail, spiky crest, isolated on a transparent
+background, a loose translucent sea-green watercolour wash behind the body as
+the only colour, dry-brush texture on the strokes, minimal detail, centred,
+filling 75% of the square. Japanese ink-wash calligraphic brush painting,
+professional 2D slot game symbol.
+Avoid: background, frame, text, gradients, 3D, photorealistic, cute cartoon eyes.
+
+4.2  L2 STARFISH
+Prompt:
+A five-armed starfish drawn in bold expressive black sumi-e brush strokes
+#171B1D, top view, slightly curled arms, dotted texture, isolated on a
+transparent background, a loose translucent ember-coral #E8553E watercolour wash
+as the only colour, dry-brush texture, minimal detail, centred, filling 75% of
+the square. Japanese ink-wash calligraphic brush painting, professional 2D slot
+game symbol.
+Avoid: background, frame, text, 3D, photorealistic, cute face.
+
+4.3  L3 CORAL
+Prompt:
+A branching sea coral sprig drawn in bold expressive black sumi-e brush strokes
+#171B1D, upright, five to seven branches, isolated on a transparent background,
+a loose translucent rose-coral watercolour wash as the only colour, dry-brush
+texture, minimal detail, centred, filling 75% of the square. Japanese ink-wash
+calligraphic brush painting, professional 2D slot game symbol.
+Avoid: background, frame, text, 3D, photorealistic.
+
+4.4  L4 SHELL
+Prompt:
+A fan-shaped scallop sea shell drawn in bold expressive black sumi-e brush
+strokes #171B1D, front view, ribbed radiating lines, isolated on a transparent
+background, a loose translucent warm sand-ochre watercolour wash as the only
+colour, dry-brush texture, minimal detail, centred, filling 75% of the square.
+Japanese ink-wash calligraphic brush painting, professional 2D slot game symbol.
+Avoid: background, frame, text, 3D, photorealistic.
+
+4.5  L5 PEARL
+Prompt:
+A single lustrous round pearl resting in a small open oyster shell, the shell
+drawn in bold black sumi-e brush strokes #171B1D, the pearl softly shaded
+white-silver with a bright highlight, isolated on a transparent background, a
+loose translucent pale blue watercolour wash as the only extra colour,
+dry-brush texture, centred, filling 75% of the square. Japanese ink-wash
+calligraphic brush painting, professional 2D slot game symbol.
+Avoid: background, frame, text, 3D render, photorealistic.
+
+---- MID / HIGH SYMBOLS: painted ink creatures, one accent glow ----
+For each: Settings: 1:1, 1024x1024, TRANSPARENT background (composite onto 4.0).
+
+4.6  H1 JELLYFISH
+Prompt:
+A drifting jellyfish with a domed bell and long trailing tentacles, painted in
+semi-realistic anime cel shading with clean black ink linework #171B1D,
+greyscale body with a soft violet-pink inner glow as the only accent colour,
+sumi-e ink-wash shading, isolated on a transparent background, centred,
+filling 75% of the square, soft light from the top left. Professional 2D slot
+game symbol.
+Avoid: background, frame, text, 3D render, photorealistic, cute face.
+
+4.7  H2 NAUTILUS
+Prompt:
+A chambered nautilus shell with tentacles curling out, side view, painted in
+semi-realistic anime cel shading with clean black ink linework #171B1D, cream
+shell with bold ember-coral #E8553E tiger stripes as the only accent, sumi-e
+ink-wash shading, isolated on a transparent background, centred, filling 75% of
+the square, soft light from the top left. Professional 2D slot game symbol.
+Avoid: background, frame, text, 3D render, photorealistic.
+
+4.8  H3 ANGLERFISH
+Prompt:
+A menacing deep-sea anglerfish facing right with a gaping toothy mouth and a
+glowing lure dangling above its head, painted in semi-realistic anime cel
+shading with clean black ink linework #171B1D, dark slate body, the lure
+glowing warm gold #FFD36B as the only accent colour, sumi-e ink-wash shading,
+isolated on a transparent background, centred, filling 75% of the square,
+soft light from the top left. Professional 2D slot game symbol.
+Avoid: background, frame, text, 3D render, photorealistic, cute.
+
+4.9  H4 KRAKEN
+Prompt:
+The head and front tentacles of a fierce kraken octopus facing the viewer,
+tentacles curling outward, painted in semi-realistic anime cel shading with
+clean black ink linework #171B1D, deep ember-coral #E8553E skin as the accent
+colour with darker shading, glowing gold #FFD36B slit eyes, sumi-e ink-wash
+texture, isolated on a transparent background, centred, filling 75% of the
+square, soft light from the top left. Professional 2D slot game symbol.
+Avoid: background, frame, text, 3D render, photorealistic, cute cartoon.
+
+---- PREMIUM / SPECIAL SYMBOLS: framed saturated panels (full tile, no 4.0) ----
+For each: Settings: 1:1, 1024x1024, full-bleed square tile.
+
+4.10  H5 GOLDEN TRIDENT (top paying symbol)
+Prompt:
+A square premium slot symbol tile: a vivid ember-coral #E8553E panel with a
+darker red vignette and swirling ink-wash water texture, framed by a thick rough
+black dry-brush border #171B1D with softly rounded corners, in the centre an
+ornate golden trident #FFD36B with three barbed prongs, engraved shaft and a
+faint gold glow, painted in semi-realistic anime cel shading with clean black
+ink linework, soft light from the top left. Professional 2D slot game premium
+symbol.
+Avoid: text, letters, numbers, 3D render, plastic gloss, photorealistic.
+
+4.11  W — WHIRLPOOL WILD
+Prompt:
+A square special slot symbol tile: a vivid teal #2BB3A3 panel with a darker
+teal-to-deep-green vignette, framed by a thick rough black dry-brush border
+#171B1D with softly rounded corners, in the centre a swirling whirlpool vortex
+of white and pale teal #5FE3D2 water spiralling inward, drawn with bold
+expressive sumi-e brush strokes and white foam highlights, soft glow in the
+centre, leave the bottom 22% of the tile calm for a text label added later.
+Professional 2D slot game wild symbol.
+Avoid: text, letters, 3D render, photorealistic, neon.
+(Add the label "WILD" in code with Permanent Marker, white fill, black stroke.)
+
+4.12  S — SUNKEN COMPASS (scatter, "BONUS")
+Prompt:
+A square special slot symbol tile: a deep navy blue panel #22395A with a darker
+vignette and faint ink-wash water texture, framed by a thick rough black
+dry-brush border #171B1D with softly rounded corners, in the centre an antique
+brass ship's compass rose with an ember-coral #E8553E needle, weathered pale
+dial with tick marks, barnacles on the rim, soft gold glow around it, painted in
+semi-realistic anime cel shading with clean black ink linework, leave the bottom
+22% of the tile calm for a text label added later. Professional 2D slot game
+scatter symbol.
+Avoid: text, letters, numbers, 3D render, photorealistic.
+(Add "BONUS" in code, Permanent Marker, gold #FFD36B fill, black stroke.)
+
+4.13  S2 — ABYSSAL COMPASS (upgraded scatter)
+Prompt:
+A square special slot symbol tile: a glowing violet panel #A26FF0 fading to
+deep purple #3B1F6E at the edges with swirling ink-wash mist, framed by a thick
+rough black dry-brush border #171B1D with softly rounded corners, in the centre
+the same antique ship's compass but corrupted by the abyss: dark obsidian rim,
+a glowing teal #5FE3D2 needle, pale lavender dial, violet energy wisps
+radiating outward, painted in semi-realistic anime cel shading with clean black
+ink linework, leave the bottom 22% of the tile calm for a text label added
+later. Professional 2D slot game special scatter symbol.
+Avoid: text, letters, numbers, 3D render, photorealistic, neon rainbow.
+(Add "ABYSSAL" in code, Permanent Marker, white fill, black stroke.)
+
+4.14  H6 — LEVIATHAN MEGA SYMBOL (sliced into 3x3 ... 6x6 in code)
+Settings: 1:1, 2048x2048, full-bleed square.
+Prompt:
+A huge square mega symbol tile: a dark abyss panel #13212A with a black
+vignette and a faint overlapping scale pattern, framed by a thick rough black
+dry-brush border #171B1D, filling the whole tile edge to edge a close-up head
+of the Leviathan sea serpent seen from the front-left, jaws wide open with
+rows of jagged white teeth and an ember-coral #E8553E glowing throat, one huge
+amber-gold #FFD36B slit-pupil eye, two curved pale horns reaching into the top
+corners, glowing teal #2BB3A3 gill slits, dark slate scales. The composition
+must read well when cut into a 3x3, 4x4, 5x5 or 6x6 grid: important features
+(eye, teeth, horns) spread across the whole square, no large empty areas.
+Semi-realistic anime cel shading, clean confident black ink linework, sumi-e
+ink-wash shading, soft light from the top left, high detail. Professional 2D
+slot game mega symbol.
+Avoid: text, body below the neck, background scenery, 3D render, photorealistic.
+
+
+=====================================================================
+ 5. GRID, HUD AND UI ELEMENTS
+=====================================================================
+
+5.1  GRID FRAME (sits around the 6x6 board)
+Settings: 1:1, 2048x2048, TRANSPARENT background (centre must be transparent).
+Prompt:
+A square game board frame, front view, isolated on a transparent background
+with a completely empty transparent centre: a thick rough hand-painted black
+sumi-e ink border #171B1D about 4% of the width, dry-brush edges with ink
+splatter flicks and uneven bristle texture, slightly irregular hand-drawn
+corners, a faint dark ink-wash shadow just inside the border. Professional 2D
+slot game UI frame.
+Avoid: anything in the centre, text, ornaments, gold trim, 3D bevel, colours.
+
+5.2  BOSS HP BAR (empty frame + fill)
+Settings: 8:1, 2400x300, TRANSPARENT background. Generate twice.
+Prompt (frame):
+A long horizontal game health bar frame, front view, isolated on a transparent
+background: a thick rough black dry-brush ink outline #171B1D around an empty
+rounded rectangle channel, with a small black brush-stroke tab rising from the
+top centre (empty, for a label added later), ink splatter flicks at both ends.
+Japanese sumi-e brush style, professional 2D slot game UI.
+Avoid: text, numbers, fill colour, 3D bevel, metal, gems.
+Prompt (fill):
+A long horizontal health bar fill, isolated on a transparent background: a
+rounded rectangle filled with a glossy-free painted gradient from bright red
+coral #FF7A5F at the top through #E8553E to deep red #9C2716 at the bottom,
+with subtle ink-wash brush texture and a thin highlight streak along the top.
+Professional 2D slot game UI.
+Avoid: text, frame, 3D gloss, gems.
+(Labels "LEVIATHAN HP" and "HP / 200" are drawn in code.)
+
+5.3  POWER-UP TRACK ICONS (8 icons, 24-48 px in game)
+Settings: 1:1, 512x512 each, TRANSPARENT background. Same seed for all 8.
+Shared prompt (replace [ICON] with each line below):
+A round game UI medallion icon, front view, isolated on a transparent
+background: a pale parchment disc #C9CEC6 with a thick rough black dry-brush
+ink rim #171B1D, in the centre [ICON] drawn as a bold simple black sumi-e
+brush pictogram, readable at very small size. Professional 2D slot game UI icon.
+Avoid: text, letters, numbers, colours, 3D, gradients, fine detail.
+  [ICON] values:
+  1 symbolsToWild        "a single swirling whirlpool spiral"
+  2 wildBlock            "four small squares in a 2 by 2 block"
+  3 lowSymbolsToWild     "a scallop shell turning into a spiral"
+  4 symbolBlock          "a 3 by 3 grid of squares"
+  5 dualSymbolsToWild    "two whirlpool spirals side by side"
+  6 highSymbolBlock      "a trident inside a square"
+  7 dualLowSymbolsToWild "two scallop shells side by side"
+  8 bossSlain            "two crossed harpoons over a serpent skull"
+  Lit state: re-colour the disc teal #2BB3A3 in code (do not regenerate).
+  Final node: gold disc #FFD36B, 1.3x larger.
+
+5.4  SPIN BUTTON
+Settings: 1:1, 1024x1024, TRANSPARENT background.
+Prompt:
+A large round slot game spin button, front view, isolated on a transparent
+background: a thick black dry-brush ink ring #171B1D around a painted teal disc
+#2BB3A3 with a lighter #5FE3D2 highlight at the top left and darker teal at the
+bottom right, a bold white circular arrow icon in the centre drawn with one
+confident brush stroke. Professional 2D slot game UI button.
+Avoid: text, 3D render, chrome, glossy plastic, gems.
+
+5.5  BUY FEATURE BADGE
+Settings: 1:1, 1024x1024, TRANSPARENT background.
+Prompt:
+A round slot game badge button, front view, isolated on a transparent
+background: a gold #FFD36B painted disc with a thick rough black dry-brush ink
+rim #171B1D, faint ink-wash texture, a small harpoon and compass emblem drawn in
+black brush strokes in the upper half, the lower half left plain for a text
+label added later. Professional 2D slot game UI button.
+Avoid: text, letters, 3D render, metal chrome, gems.
+
+5.6  CONTROL BAR BACKGROUND
+Settings: 6:1, 3000x500, TRANSPARENT background.
+Prompt:
+A wide rounded rectangular control bar panel for a slot game, front view,
+isolated on a transparent background: near-black ink #171B1D with a faint
+sumi-e ink-wash texture, a thin rough dry-brush outline, subtle darker inner
+shadow, completely empty. Professional 2D slot game UI panel.
+Avoid: text, buttons, icons, 3D bevel, metal, colours.
+
+5.7  BUY MENU CARD (parchment card with ink corner brackets)
+Settings: 3:4, 1200x1600, full-bleed.
+Prompt:
+An empty vertical card for a game shop menu, front view: pale weathered grey
+parchment #C9CEC6 with subtle ink-wash stains and paper grain, thick black
+hand-drawn brush corner brackets #171B1D at the top-left and bottom-right
+corners only, completely empty inside. Japanese sumi-e texture, professional 2D
+slot game UI card.
+Avoid: text, pictures, icons, colours, 3D.
+
+5.8  BUY MENU ILLUSTRATIONS (small, centred on each card)
+Settings: 4:3, 1200x900, TRANSPARENT background, same style anchor.
+  Hunts:      "three Sunken Compass symbol tiles fanned out like playing cards"
+  Trench Hunt:"two Sunken Compass tiles fanned around one glowing violet Abyssal Compass tile"
+  Mysteries:  "a large black dry-brush question mark beside a small sealed treasure chest"
+  Free spins: "a small 6 by 6 grid of teal multiplier tiles between two Sunken Compass tiles"
+Shared prompt (replace [SUBJECT]):
+[SUBJECT], isolated on a transparent background, semi-realistic anime cel
+shading with clean black ink linework #171B1D, sumi-e ink-wash shading,
+desaturated greyscale with teal #2BB3A3, ember coral #E8553E and gold #FFD36B
+accents only, soft light from the top left. Professional 2D slot game menu
+illustration.
+Avoid: text, letters, numbers, background, 3D render, photorealistic.
+
+5.9  MULTIPLIER SPOT TILES (6 levels, under the symbols)
+Do not generate. Use the empty parchment tile (4.0) tinted in code:
+2x teal #2BB3A3, 4x blue #4B8FD6, 8x purple #A26FF0, 16x pink #E86FB4,
+32x and 64x gold #FFD36B (64x adds an inner glow).
+
+
+=====================================================================
+ 6. LOGO AND TITLE LETTERING (dry-brush lettering, generated as images)
+=====================================================================
+Image generators misspell often: generate 8-16 variations and pick one with
+correct spelling, or generate the brush stroke only (6.2) and set the letters
+yourself in Permanent Marker over it.
+
+6.1  GAME LOGO — "ABYSSAL TIDE"
+Settings: 2:1, 2400x1200, TRANSPARENT background (Ideogram or GPT-Image for text).
+Prompt:
+Game logo with the exact words "ABYSSAL" on the first line and "TIDE" on the
+second line, aggressive hand-painted dry-brush calligraphy lettering, white
+letters #F3F5F2 with ragged bristle edges and a thick black ink outline
+#171B1D, letters slanted and rotated about -6 degrees, a bold teal #2BB3A3
+brush-stroke swash slashing behind the words from lower left to upper right,
+a few ink splatter flecks, isolated on a transparent background. Professional
+slot game logo, Japanese sumi-e brush energy.
+Avoid: misspelling, extra words, 3D letters, chrome, gradients, drop shadows,
+any other text.
+
+6.2  LOGO BRUSH SWASH ONLY (fallback if spelling fails)
+Settings: 3:1, 2400x800, TRANSPARENT background.
+Prompt:
+A single bold teal #2BB3A3 dry-brush paint stroke, wide and tapering, swept
+diagonally from lower left to upper right, ragged bristle texture and ink
+splatter flecks at the end, isolated on a transparent background. Japanese
+sumi-e brush stroke, professional 2D game graphic.
+Avoid: text, letters, other colours, 3D.
+
+6.3  BIG WIN TITLES (one per tier — same prompt, change the words)
+Settings: 3:1, 2400x800, TRANSPARENT background.
+Words, one image each:  "BIG WIN"   "MEGA WIN"   "TIDAL WAVE"
+"ABYSSAL WIN"   "LEGENDARY CATCH"   "MAX WIN"   "FEATURE COMPLETE"
+"THE LEVIATHAN RISES"   "RIPTIDE"   "UNDERTOW"   "MAELSTROM"   "ABYSSAL"
+Prompt:
+The exact words "[WORDS]" as aggressive hand-painted dry-brush calligraphy
+lettering, white letters #F3F5F2 with ragged bristle edges and a thick black ink
+outline #171B1D, slight -3 degree tilt, a gold #FFD36B brush-stroke slash behind
+the words, ink splatter flecks, isolated on a transparent background.
+Professional slot game title text, Japanese sumi-e brush energy.
+Avoid: misspelling, extra words, 3D letters, chrome, glossy, other text.
+(For ABYSSAL tier use a violet #A26FF0 slash; for MAELSTROM a teal slash.)
+
+
+=====================================================================
+ 7. EFFECTS, PARTICLES AND OVERLAYS
+=====================================================================
+All: Settings: 1:1, 1024x1024, TRANSPARENT background, unless noted.
+
+7.1  DRIFTING EMBER-CORAL FLAKES (falling-leaf equivalent, ambient)
+Prompt:
+A sprite sheet of 8 small separate drifting sea-debris flakes, isolated on a
+transparent background, arranged in a 4 by 2 grid with space between them:
+torn ember-coral #E8553E kelp leaf fragments and coral petals, each a single
+loose brush stroke with soft motion-blurred edges, slightly different shapes
+and rotations. Japanese sumi-e brush style, professional 2D game particle sprites.
+Avoid: background, text, overlapping sprites, 3D.
+
+7.2  BUBBLES AND MARINE SNOW
+Prompt:
+A sprite sheet of 12 separate underwater particles on a transparent background,
+grid 4 by 3 with spacing: 6 hollow round bubbles drawn as thin white #F3F5F2
+ink circles with a tiny highlight, in different sizes, and 6 soft pale specks
+of marine snow. Minimal ink style, professional 2D game particle sprites.
+Avoid: background, text, colours, 3D glass.
+
+7.3  INK SPLASH (symbol pop / win explosion)
+Prompt:
+A dramatic black sumi-e ink splash burst seen from the front, radiating outward
+from the centre with droplets and dry-brush streaks, a few teal #2BB3A3 droplets
+mixed in, isolated on a transparent background. Professional 2D game VFX sprite.
+Avoid: text, background, 3D fluid render, colours other than black and teal.
+
+7.4  WATER SLASH (Leviathan hit)
+Prompt:
+A single curved white water slash arc with spray and foam, motion-blurred, an
+ember-coral #E8553E edge glow, isolated on a transparent background, Japanese
+ink-wash brush style. Professional 2D game hit-effect sprite.
+Avoid: text, background, blood, 3D fluid render.
+
+7.5  WIN GLOW RING (behind winning symbols)
+Prompt:
+A soft circular glow ring, pale teal #5FE3D2 fading to transparent, with a faint
+brush-stroke texture in the ring, isolated on a transparent background.
+Professional 2D game VFX sprite.
+Avoid: text, hard edges, rainbow colours.
+
+7.6  OVERLAY BACKDROP (big wins, tier intros)
+Settings: 16:9, 3200x1800, TRANSPARENT background.
+Prompt:
+A dramatic radial burst of dark ink-wash brush strokes and swirling water
+currents radiating from an empty centre, near-black #171B1D at the edges fading
+to transparent in the middle, a few gold #FFD36B and teal #2BB3A3 sparks, isolated
+on a transparent background. Japanese sumi-e style, professional 2D slot game
+overlay backdrop.
+Avoid: text, characters, solid fill in the centre, 3D.
+
+
+=====================================================================
+ 8. STAKE ENGINE GAME TILE (built in the Tile Editor — no text in images)
+=====================================================================
+Stake rules: background brighter than the platform, no dark edges, no text or
+multipliers baked in.
+
+8.1  TILE BACKGROUND
+Settings: 1:1, 2048x2048, full-bleed.
+Prompt:
+Bright misty underwater background for a game thumbnail, no characters, no
+text: pale fog grey #DCDFD7 and soft sky-teal light filling the frame, shafts of
+light from the surface, faint silhouettes of sea stacks and a sunken mast in the
+far distance, a few ember-coral #E8553E coral fronds, the edges stay light and
+airy (no dark vignette). Japanese sumi-e ink-wash painting, soft and luminous,
+professional 2D game tile background.
+Avoid: text, logo, dark edges, vignette, characters, oversaturated, neon.
+
+8.2  TILE FOREGROUND
+Settings: 1:1, 2048x2048, TRANSPARENT background.
+Prompt:
+A dramatic close composition, isolated on a transparent background: the head of
+the Leviathan sea serpent bursting up from the lower right with jaws open, amber
+#FFD36B eye and ember-coral #E8553E glowing throat, while the hooded harpooner
+leaps in from the lower left with the harpoon thrust forward and teal #2BB3A3
+scarf streaming, both large and filling the key focus area. Dark fantasy anime
+illustration, semi-realistic cel shading, clean black ink linework, sumi-e
+ink-wash shading, desaturated greyscale with teal, amber and ember accents,
+high detail, professional slot game thumbnail art.
+Avoid: text, logo, numbers, background, 3D render, photorealistic.
+
+
+=====================================================================
+ 9. ANIMATION (match the reference: slow, subtle, always alive)
+=====================================================================
+The reference keeps the grid still between spins and makes the WORLD breathe:
+characters idle (breathing, hair and cloth drifting), background layers sway
+with slight parallax, fog drifts, and accent-coloured leaves fall slowly across
+the frame. Reproduce the same rhythm with our assets.
+
+9.1  In-engine idle loops (implemented in code, CSS or Spine)
+  Hero idle          5 s loop, ease-in-out alternate: body translateY -1.2%,
+                     rotate -0.6 deg; scarf and hood-cloth layers swing ±4 deg
+                     with a 1.3 s phase offset (looks like a slow current).
+  Leviathan idle     5 s loop, ease-in-out alternate: body translateY -1.2%,
+                     rotate -0.6 deg; head layer bobs ±2% offset 0.8 s;
+                     gills pulse opacity 0.7 to 1 every 2.4 s.
+  Leviathan hit      0.35 s: x +10 px and back, brightness flash x2.2.
+  Leviathan slain    1.6 s ease-in: y +18%, rotate 6 deg, greyscale, opacity 0.35.
+  Background far     10 s loop: light shafts drift ±40 px with skewX ±3 deg.
+  Background middle  20 s loop: parallax drift ±8 px horizontally.
+  Kelp foreground    7 s loop, each strand skewX ±5 deg, staggered phases.
+  Fog band           30 s loop, slow horizontal scroll, 40% opacity.
+  Bubbles            10 sprites, 12 s linear rise from the seabed, fade in/out.
+  Ember flakes       6-8 sprites (7.1), 6-9 s each, fall diagonally top-right
+                     to bottom-left while rotating 180-360 deg and swaying,
+                     slight motion blur — the same feel as the reference's
+                     falling leaves.
+
+9.2  Image-to-video prompts (Kling / Runway / Luma / Higgsfield)
+Use the generated still as the start frame AND end frame (seamless loop),
+5 seconds, camera locked, no zoom, no cuts.
+
+  HERO IDLE (start/end frame = 2.2)
+  The hooded harpooner stands still in a slow underwater current, breathing
+  gently, his teal scarf and torn hood cloth drift and ripple softly, the glowing
+  teal eyes pulse faintly, tiny bubbles rise past him. Static locked camera, no
+  zoom, no body movement except breathing and cloth drift, seamless loop,
+  transparent or plain background preserved.
+
+  LEVIATHAN IDLE (start/end frame = 3.2)
+  The coiled sea serpent sways slowly in the water, its head bobbing slightly,
+  jaws opening and closing a little, gills glowing and fading, dorsal fins
+  rippling, a few bubbles escaping from its mouth. Static locked camera, no
+  zoom, menacing slow movement, seamless loop.
+
+  BACKGROUND LOOP (start/end frame = 1.1)
+  Underwater scene comes alive: shafts of light slowly sway, kelp strands sway
+  gently in the current, fog drifts left to right, bubbles and marine snow
+  float upward, a few ember-coral flakes tumble slowly across the frame.
+  Static locked camera, no zoom, no characters appear, seamless loop.
+
+  LOGO SHIMMER (start/end frame = 6.1)
+  The brush lettering stays still while a soft teal light sweeps across the
+  brush swash from left to right and a few ink droplets flick off the end.
+  Static camera, seamless loop.
+
+9.3  Event animations (code timings already in the frontend)
+  Reveal: old symbols fall out 0.22 s; new symbols drop in 0.38 s with
+  cubic-bezier(.3,1.25,.6,1), staggered reel x 60 ms + (6 - row) x 22 ms.
+  Wins: winning symbols glow 0.6 s alternate, hold 700 ms, pop 0.38 s
+  (scale down + fade + ink splash 7.3), tumble 440 ms.
+  Power-up: affected cells glow 0.35 s; changed cells morph 0.6 s
+  (scale 0.3 to 1, -20 deg spin, brightness x3).
+  Overlays: zoom in from scale 0.4 at -6 deg with cubic-bezier(.2,1.4,.4,1);
+  tap to skip. Big-win count-up over 60% of the overlay time.
+
+
+=====================================================================
+ 10. EXPORT CHECKLIST
+=====================================================================
+  - PNG with alpha for everything marked TRANSPARENT; WebP for the backgrounds.
+  - Symbols 512x512 (H6 2048x2048), characters max 1600 px tall, background
+    3200x1800 and 1800x3200.
+  - Same style anchor (0.1) as reference for every generation.
+  - Check every image at 100% zoom for extra fingers, broken harpoons, spelling.
+  - Keep originals and seeds in a /art/source folder for future revisions.
+  - All assets ship inside the build (no CDN or external URLs at runtime).
