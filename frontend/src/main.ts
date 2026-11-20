@@ -398,37 +398,50 @@ const WHEEL: Record<string, [string, number][]> = {
 const WHEEL_FILL: Record<string, string> = { "": "#262e31", S: "#e9ad2c", U: "#2bb3a3", H: "#8a47d6" }
 const WHEEL_SPIN_MS = 4600
 
+const WHEEL_ART: Record<string, string> = { "": "still", S: "undertow", U: "maelstrom", H: "abyssal" }
+/** Wheel geometry in SVG units (viewBox -100..100), fitted to the painted rim. */
+const WHEEL_R = 78 // slices tuck under the rim, whose inner edge is at r 74.7
+const RIM_SCALE = 0.1623 // rim art: 1254 px, centre (625, 622), inner edge 460 px, knots 610 px
+
 function wheelSvg(slices: [string, number][]): string {
-  const pt = (a: number, r: number) => `${(r * Math.sin((a * Math.PI) / 180)).toFixed(2)},${(-r * Math.cos((a * Math.PI) / 180)).toFixed(2)}`
+  const xy = (a: number, r: number) => [r * Math.sin((a * Math.PI) / 180), -r * Math.cos((a * Math.PI) / 180)] as const
+  const pt = (a: number, r: number) => xy(a, r).map((v) => v.toFixed(2)).join(",")
+  const chord = (deg: number, r: number) => 2 * r * Math.sin((Math.min(deg, 120) * Math.PI) / 360)
+  const keys = [...new Set(slices.map(([k]) => k))]
+  const R = WHEEL_R
+  const defs = keys.map((k) => `<pattern id="wash-${WHEEL_ART[k]}" patternUnits="userSpaceOnUse" x="${-R}" y="${-R}" width="${2 * R}" height="${2 * R}"><image href="${asset(`ui/wheel/wash_${WHEEL_ART[k]}`)}" width="${2 * R}" height="${2 * R}" preserveAspectRatio="xMidYMid slice"/></pattern>`).join("")
   let a = 0
-  let out = ""
+  let fills = ""
+  let marks = ""
   slices.forEach(([k, w], i) => {
     const a0 = a
     const a1 = a + w * 3.6
     a = a1
+    const span = a1 - a0
     const mid = (a0 + a1) / 2
-    const large = a1 - a0 > 180 ? 1 : 0
+    const large = span > 180 ? 1 : 0
+    fills += `<path class="slice" data-i="${i}" d="M0,0 L${pt(a0, R)} A${R},${R} 0 ${large} 1 ${pt(a1, R)} Z" fill="url(#wash-${WHEEL_ART[k]})"/>`
+    fills += `<line x1="0" y1="0" x2="${xy(a0, R)[0].toFixed(2)}" y2="${xy(a0, R)[1].toFixed(2)}" class="sep"/>`
     const name = k ? TIER[k]!.name.toUpperCase() : t("STILL WATER")
-    const label = name
-    const fs = Math.min(9.5, (a1 - a0) * 0.5)
-    // Fit the label between the hub (r 30) and the rim (r 84).
-    const fit = label.length * fs * 0.62 > 50 ? ` textLength="50" lengthAdjust="spacingAndGlyphs"` : ""
-    out += `<path class="slice${k ? "" : " calm"}" data-i="${i}" d="M0,0 L${pt(a0, 88)} A88,88 0 ${large} 1 ${pt(a1, 88)} Z" fill="${WHEEL_FILL[k]}"/>`
-    out += `<g transform="rotate(${mid.toFixed(2)})"><text class="wl" x="0" y="-57" font-size="${fs.toFixed(1)}"${fit} transform="rotate(-90 0 -57)" text-anchor="middle" dominant-baseline="central">${label}</text></g>`
-    out += `<line x1="0" y1="0" x2="${pt(a0, 88).split(",")[0]}" y2="${pt(a0, 88).split(",")[1]}" class="sep"/>`
+    const em = Math.min(25, chord(span, 45) * 0.8)
+    const fs = Math.min(7.5, (chord(span, 63) * 0.86) / (name.length * 0.62))
+    marks += `<g class="mark" data-i="${i}" transform="rotate(${mid.toFixed(2)})">
+      <image href="${asset(`ui/wheel/emblem_${WHEEL_ART[k]}`)}" x="${(-em / 2).toFixed(2)}" y="${(-45 - em / 2).toFixed(2)}" width="${em.toFixed(2)}" height="${em.toFixed(2)}"/>
+      <text class="wl" x="0" y="-63.5" font-size="${fs.toFixed(2)}" text-anchor="middle" dominant-baseline="central">${name}</text></g>`
   })
-  let pegs = ""
-  for (let i = 0; i < 40; i++) pegs += `<circle cx="${pt(i * 9, 93).split(",")[0]}" cy="${pt(i * 9, 93).split(",")[1]}" r="1.9" class="peg"/>`
+  const rim = RIM_SCALE
   return `<svg class="wheel-svg" viewBox="-100 -100 200 200" aria-hidden="true">
-    <circle r="97" class="rim"/>${pegs}<g class="wheel-rot">${out}<circle r="88" class="edge"/></g>
-    <circle r="27" class="hub"/></svg>`
+    <defs>${defs}<radialGradient id="wheel-shade"><stop offset="55%" stop-color="#171b1d" stop-opacity="0"/><stop offset="100%" stop-color="#171b1d" stop-opacity=".5"/></radialGradient></defs>
+    <g class="wheel-rot">${fills}<circle r="${R}" fill="url(#wheel-shade)" pointer-events="none"/>${marks}</g>
+    <image class="wheel-rim" href="${asset("ui/wheel/rim")}" x="${(-625 * rim).toFixed(2)}" y="${(-622 * rim).toFixed(2)}" width="${(1254 * rim).toFixed(2)}" height="${(1254 * rim).toFixed(2)}"/>
+    <image class="wheel-hub" href="${asset("ui/wheel/hub")}" x="-25" y="-25" width="50" height="50"/></svg>`
 }
 
 /** Total odds per outcome, shown under the wheel. */
 function wheelOdds(slices: [string, number][]): string {
   const total = new Map<string, number>()
   for (const [k, w] of slices) total.set(k, (total.get(k) ?? 0) + w)
-  return [...total].map(([k, w]) => `<span><i style="background:${WHEEL_FILL[k]}"></i>${k ? TIER[k]!.name : t("Still water")} ${w}%</span>`).join("")
+  return [...total].map(([k, w]) => `<span><img src="${asset(`ui/wheel/emblem_${WHEEL_ART[k]}`)}" alt="">${k ? TIER[k]!.name : t("Still water")} ${w}%</span>`).join("")
 }
 
 /**
@@ -459,7 +472,7 @@ async function depthWheel(mode: string, tier: string | null): Promise<void> {
 
   const el = h(`<div class="overlay wheel-ov" role="dialog" aria-label="${t("Depth Wheel")}"><img class="ov-backdrop" src="${asset("fx/overlay_backdrop")}" alt="">
     <div class="wheel-card"><h2 class="wheel-title">${t("THE DEPTH WHEEL")}</h2><p class="wheel-sub">${name}</p>
-      <div class="wheel"><img class="wheel-glow" src="${asset("fx/glow_ring")}" alt=""><div class="wheel-pointer"></div>${wheelSvg(slices)}<img class="wheel-hub" src="${asset("ui/illus_mystery")}" alt=""></div>
+      <div class="wheel"><img class="wheel-glow" src="${asset("fx/glow_ring")}" alt="">${wheelSvg(slices)}<img class="wheel-pointer" src="${asset("ui/wheel/pointer")}" alt="" draggable="false"></div>
       <div class="wheel-odds">${wheelOdds(slices)}</div>
       <div class="wheel-result" aria-live="polite"></div></div></div>`)
   translateTree(el)
@@ -486,7 +499,7 @@ async function depthWheel(mode: string, tier: string | null): Promise<void> {
     rot.style.transform = `rotate(${finalDeg}deg)`
   }
   clearInterval(slamWatch)
-  rot.querySelector(`.slice[data-i="${pick[1]}"]`)?.classList.add("hit")
+  rot.querySelectorAll(`[data-i="${pick[1]}"]`).forEach((n) => n.classList.add("hit"))
   el.classList.add(tier ? "landed" : "landed-calm")
   const res = el.querySelector(".wheel-result")!
   if (tier) {

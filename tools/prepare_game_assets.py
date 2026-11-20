@@ -55,9 +55,15 @@ JOBS = [
     ("effects/ink_splash.png", "fx/ink_splash.webp", 520),
     ("effects/water_slash.png", "fx/water_slash.webp", 900),
     ("effects/overlay_backdrop.png", "fx/overlay_backdrop.webp", 1500),
+    # Depth Wheel (cut from the delivered sheets by tools/prepare_wheel_art.py)
+    ("ui/wheel/wheel_rim.png", "ui/wheel/rim.webp", 1100),
+    ("ui/wheel/wheel_hub.png", "ui/wheel/hub.webp", 360),
+    ("ui/wheel/wheel_pointer.png", "ui/wheel/pointer.webp", 300),
 ]
 GLOBS = [
     ("ui/powerups/*.png", "ui/pu", 96),
+    ("ui/wheel/wash_*.png", "ui/wheel", 600),
+    ("ui/wheel/emblem_*.png", "ui/wheel", 160),
     ("lettering/title_*.png", "lettering", 1000),
     ("effects/bubbles/bubble_*.png", "fx", 64),
     ("effects/flakes/flake_*.png", "fx", 72),
