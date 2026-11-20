@@ -12,5 +12,8 @@ mkdirSync("public/fx", { recursive: true })
 for (const [src, dst] of pick) cpSync(`${A}/${src}`, `public/${dst}`)
 // full-resolution logo (the game copy is downscaled)
 cpSync("../art/generated/lettering/logo_abyssal_tide.png", "public/logo_full.png")
+// Depth Wheel art at full resolution
+cpSync("../art/generated/ui/wheel/wheel_hub.png", "public/wheel_hub.png")
+cpSync("../art/generated/ui/wheel/wheel_glow.png", "public/wheel_glow.png")
 for (const f of readdirSync(`${A}/fx`)) if (/^(bubble|flake)_/.test(f)) cpSync(`${A}/fx/${f}`, `public/fx/${f}`)
 console.log("assets copied")

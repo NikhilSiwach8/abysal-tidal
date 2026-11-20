@@ -1,6 +1,6 @@
 import React from "react"
 import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion"
-import { Bubbles, Grade, Grain, Layer, PreviewBg, Vignette } from "./components"
+import { Bubbles, Grade, Grain, Layer, PreviewBg, Vignette, useSvgImage } from "./components"
 import { breath, cyclePos, theme, wave } from "./theme"
 
 type LoopProps = { preview?: boolean } // preview: render over a dark backdrop (MP4); else transparent
@@ -170,6 +170,109 @@ export const LogoShimmer: React.FC<LoopProps> = ({ preview }) => {
           })}
         </div>
       </AbsoluteFill>
+    </AbsoluteFill>
+  )
+}
+
+// ------------------------------------------------------------------ Depth Wheel hub
+/**
+ * Hub cap idle (5 s): the chest rocks on its base, the teal seam glow pulses with sparks
+ * rising out of it, the ink question mark drifts like smoke, and the cap breathes. The
+ * art is one flat image, so each part moves as a feathered, masked copy over the base.
+ */
+export const WheelHubIdle: React.FC<LoopProps> = ({ preview }) => {
+  const f = useCurrentFrame()
+  const { durationInFrames: N } = useVideoConfig()
+  const W = theme.wheel.art
+  const H = theme.wheel.hub
+  const src = useSvgImage(staticFile("wheel_hub.png"))
+  const rock = wave(f, N, 1, 0.5) * H.rockDeg
+  const seam = 0.35 + 0.55 * (0.5 + 0.5 * wave(f, N, 2, 0.2)) // 2.5 s pulse
+  const ang = (2 * Math.PI * f) / N // smoke noise orbits once per loop -> seamless
+  const sx = Math.cos(ang) * H.smokeOrbit
+  const sy = Math.sin(ang) * H.smokeOrbit
+  const scale = 1 + H.breathe * breath(f, N, 0.8)
+  const [px, py] = H.rockPivot
+  const sparks = Array.from({ length: 6 }, (_, i) => {
+    const p = cyclePos(f, N, (i * 0.618034) % 1)
+    const x = H.seam.cx - 220 + ((i * 0.37) % 1) * 440 + Math.sin(p * Math.PI * 3 + i) * 18
+    const y = H.seam.cy - p * 230
+    const op = interpolate(p, [0, 0.15, 0.7, 1], [0, 1, 0.6, 0], { easing: theme.ease.inOut, extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+    return <circle key={i} cx={x} cy={y} r={7 + (i % 3) * 3} fill="url(#spark)" opacity={op} />
+  })
+  return (
+    <AbsoluteFill>
+      {preview ? <PreviewBg /> : null}
+      <AbsoluteFill><svg viewBox={`0 0 ${W} ${W}`} style={{ width: "100%", height: "100%" }}>
+        <defs>
+          <filter id="smoke" x="0" y="0" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.011" numOctaves={2} seed={4} result="n" />
+            <feOffset in="n" dx={sx} dy={sy} result="no" />
+            <feDisplacementMap in="SourceGraphic" in2="no" scale={H.smokeScale} xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+          <radialGradient id="feather"><stop offset="55%" stopColor="#fff" /><stop offset="100%" stopColor="#000" /></radialGradient>
+          <mask id="qm"><ellipse cx={H.qmark.cx} cy={H.qmark.cy} rx={H.qmark.rx} ry={H.qmark.ry} fill="url(#feather)" /></mask>
+          <mask id="cm"><ellipse cx={H.chest.cx} cy={H.chest.cy} rx={H.chest.rx} ry={H.chest.ry} fill="url(#feather)" /></mask>
+          <radialGradient id="seamGlow"><stop offset="0%" stopColor={theme.colors.tealHi} stopOpacity={0.95} /><stop offset="60%" stopColor={theme.colors.teal} stopOpacity={0.35} /><stop offset="100%" stopColor={theme.colors.teal} stopOpacity={0} /></radialGradient>
+          <radialGradient id="spark"><stop offset="0%" stopColor="#F3F5F2" /><stop offset="45%" stopColor={theme.colors.tealHi} /><stop offset="100%" stopColor={theme.colors.tealHi} stopOpacity={0} /></radialGradient>
+        </defs>
+        <g transform={`translate(${W / 2} ${W / 2}) scale(${scale}) rotate(${RASTER_EPS}) translate(${-W / 2} ${-W / 2})`}>
+          <image href={src} width={W} height={W} />
+          <g mask="url(#qm)"><image href={src} width={W} height={W} filter="url(#smoke)" /></g>
+          <g transform={`rotate(${rock + RASTER_EPS} ${px} ${py})`}>
+            <g mask="url(#cm)"><image href={src} width={W} height={W} /></g>
+            <ellipse cx={H.seam.cx} cy={H.seam.cy} rx={H.seam.rx} ry={H.seam.ry} fill="url(#seamGlow)" opacity={seam} style={{ mixBlendMode: "screen" }} />
+          </g>
+          <g style={{ mixBlendMode: "screen" }}>{sparks}</g>
+        </g>
+      </svg></AbsoluteFill>
+    </AbsoluteFill>
+  )
+}
+
+// ------------------------------------------------------------------ Depth Wheel back glow
+/**
+ * Back-glow loop (10 s): the water ring sways, its strokes flow (displacement noise on a
+ * circular path), the bloom breathes twice, and droplets orbit once per loop.
+ */
+export const WheelGlowLoop: React.FC<LoopProps> = ({ preview }) => {
+  const f = useCurrentFrame()
+  const { durationInFrames: N } = useVideoConfig()
+  const W = theme.wheel.art
+  const G = theme.wheel.glow
+  const src = useSvgImage(staticFile("wheel_glow.png"))
+  const sway = wave(f, N, 1) * G.swayDeg
+  const scale = 1 + G.breathe * breath(f, N)
+  const bloom = 0.25 + 0.3 * (0.5 + 0.5 * wave(f, N, 2, 1))
+  const ang = (2 * Math.PI * f) / N
+  const fx = Math.cos(ang) * G.flowOrbit
+  const fy = Math.sin(ang) * G.flowOrbit
+  const c = W / 2
+  const drops = Array.from({ length: G.droplets }, (_, i) => {
+    const a = ang + (i / G.droplets) * 2 * Math.PI + ((i * 0.37) % 1) * 0.4
+    const rad = 455 + ((i * 0.618) % 1) * 110 + wave(f, N, 3, i * 0.7) * 14
+    const op = 0.35 + 0.65 * (0.5 + 0.5 * wave(f, N, 2, i * 0.9))
+    return <circle key={i} cx={c + Math.sin(a) * rad} cy={c - Math.cos(a) * rad} r={6 + (i % 4) * 3} fill="url(#drop)" opacity={op} />
+  })
+  return (
+    <AbsoluteFill>
+      {preview ? <PreviewBg /> : null}
+      <AbsoluteFill><svg viewBox={`0 0 ${W} ${W}`} style={{ width: "100%", height: "100%" }}>
+        <defs>
+          <filter id="flow" x="-5%" y="-5%" width="110%" height="110%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.007" numOctaves={2} seed={9} result="n" />
+            <feOffset in="n" dx={fx} dy={fy} result="no" />
+            <feDisplacementMap in="SourceGraphic" in2="no" scale={G.flowScale} xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+          <filter id="bloom" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="22" /></filter>
+          <radialGradient id="drop"><stop offset="0%" stopColor="#F3F5F2" /><stop offset="40%" stopColor={theme.colors.tealHi} /><stop offset="100%" stopColor={theme.colors.tealHi} stopOpacity={0} /></radialGradient>
+        </defs>
+        <g transform={`translate(${c} ${c}) rotate(${sway + RASTER_EPS}) scale(${scale}) translate(${-c} ${-c})`}>
+          <image href={src} width={W} height={W} filter="url(#bloom)" opacity={bloom} style={{ mixBlendMode: "screen" }} />
+          <image href={src} width={W} height={W} filter="url(#flow)" />
+        </g>
+        <g style={{ mixBlendMode: "screen" }}>{drops}</g>
+      </svg></AbsoluteFill>
     </AbsoluteFill>
   )
 }

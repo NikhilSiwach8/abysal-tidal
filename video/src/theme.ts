@@ -24,6 +24,19 @@ export const theme = {
     hero: { w: 1024, h: 1536, scarfPivotX: 22.95, coatPivotX: 14.65 },
     lev: { w: 971, h: 1619, headPivotX: 44.28 },
   },
+  // Depth Wheel loops (art/ABYSSAL_TIDE_WHEEL_PROMPTS.txt W10). Coordinates are in the
+  // source art's pixels (both canvases are 1254 x 1254).
+  wheel: {
+    art: 1254,
+    glowSeconds: 10, // droplets orbit once per loop: 36 deg/s reads as ambient, not busy
+    hub: {
+      rockDeg: 0.8, rockPivot: [627, 1080], chest: { cx: 627, cy: 840, rx: 360, ry: 250 },
+      seam: { cx: 627, cy: 790, rx: 300, ry: 46 },
+      qmark: { cx: 650, cy: 360, rx: 300, ry: 250 }, smokeScale: 16, smokeOrbit: 60,
+      breathe: 0.012,
+    },
+    glow: { swayDeg: 7, breathe: 0.03, flowScale: 26, flowOrbit: 90, droplets: 12 },
+  },
   // Amplitudes from art/ABYSSAL_TIDE_ASSET_PROMPTS.txt §9.1
   motion: {
     breatheY: -1.2, // % of height

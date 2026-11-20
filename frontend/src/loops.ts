@@ -13,6 +13,8 @@ import levLoop from "./assets/video/lev_idle.webm?url"
 import logoLoop from "./assets/video/logo.webm?url"
 import bgLoopWebm from "./assets/video/bg.webm?url"
 import bgLoopMp4 from "./assets/video/bg.mp4?url"
+import wheelHubLoop from "./assets/video/wheel_hub.webm?url"
+import wheelGlowLoop from "./assets/video/wheel_glow.webm?url"
 
 const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches
 
@@ -74,4 +76,20 @@ export function setLeviathanLoopPaused(paused: boolean): void {
   if (!v) return
   if (paused) v.pause()
   else void v.play().catch(() => {})
+}
+
+/**
+ * Depth Wheel loops (video/: WheelHubIdle, WheelGlowLoop), both transparent. The painted
+ * hub and glow stay until each video is playing; Safari and reduced motion keep them.
+ */
+export function attachWheelLoops(wheel: HTMLElement): void {
+  if (reducedMotion() || !alphaWebmSupported()) return
+  const hub = document.createElement("div")
+  hub.className = "wheel-hub-video"
+  wheel.append(hub)
+  attach(hub, wheel, "hub-video-on", makeVideo("loop-video", [[wheelHubLoop, "video/webm"]]))
+  const glow = document.createElement("div")
+  glow.className = "wheel-glow-video"
+  wheel.prepend(glow)
+  attach(glow, wheel, "glow-video-on", makeVideo("loop-video", [[wheelGlowLoop, "video/webm"]]))
 }

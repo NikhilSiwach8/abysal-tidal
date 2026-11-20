@@ -547,3 +547,11 @@ table.modes th { font-family: var(--f-lil); font-weight: 400; }
   background: url("./assets/fx/wheel_flash.webp") 0 0 / 800% 100% no-repeat; filter: var(--tint); }
 .wheel-flash.go { animation: wheelflash .7s steps(7) forwards; }
 @keyframes wheelflash { 0% { opacity: 1; background-position: 0 0; } 99% { opacity: 1; } 100% { opacity: 0; background-position: 100% 0; } }
+
+/* Depth Wheel video loops (src/loops.ts attachWheelLoops): same boxes as the stills */
+.wheel-glow-video { position: absolute; inset: -9%; pointer-events: none; }
+.wheel-hub-video { position: absolute; z-index: 1; left: 37.5%; top: 37.5%; width: 25%; height: 25%; pointer-events: none; }
+.wheel-hub-video .loop-video, .wheel-glow-video .loop-video { object-fit: fill; }
+.wheel.hub-video-on .wheel-svg .wheel-hub { visibility: hidden; }
+.wheel.glow-video-on .wheel-glow { visibility: hidden; }
+.landed .wheel-glow-video { filter: brightness(1.3); }

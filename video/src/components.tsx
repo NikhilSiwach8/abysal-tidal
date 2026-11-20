@@ -1,5 +1,5 @@
 import React from "react"
-import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion"
+import { AbsoluteFill, Img, continueRender, delayRender, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion"
 import { cyclePos, theme } from "./theme"
 
 /** A full-canvas rig layer: every layer shares the source canvas so they stack exactly. */
@@ -62,3 +62,17 @@ export const Grade: React.FC = () => (
 export const PreviewBg: React.FC = () => (
   <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 40%, #3a464b, ${theme.colors.previewBg} 70%)` }} />
 )
+
+/**
+ * Hold the render until `src` is loaded and decoded. Remotion waits for <Img>, but not for
+ * <image> inside an SVG, which would otherwise be captured blank.
+ */
+export function useSvgImage(src: string): string {
+  const [handle] = React.useState(() => delayRender(`load ${src}`))
+  React.useEffect(() => {
+    const im = new Image()
+    im.src = src
+    im.decode().then(() => continueRender(handle), () => continueRender(handle))
+  }, [src, handle])
+  return src
+}

@@ -101,6 +101,8 @@ npm run build                    # dist/ (relative paths, static only)
 * Mystery buys open the Depth Wheel first. Slice sizes are the published odds (measured from
   the LUT weights: mystery 60.00/25.00/10.00/5.00%, mystery_deep 60.00/30.00/10.00%), and it
   always lands on the outcome already in the book (its `selectedMode` event, or none).
+* The wheel's hub and back glow play transparent loops (`video/`: `WheelHubIdle`, `WheelGlowLoop`)
+  over the painted stills, with the same Safari / reduced-motion fallback as the other loops.
 * Leviathan HP bar: damage clips the fill from the left, and power-up node *n* sits exactly
   where the bar's edge is at 25×*n* damage.
 * QA helper (demo only): `?demoBook=<id>` forces a demo book; showcase IDs are in `public/demo/showcase.json`.

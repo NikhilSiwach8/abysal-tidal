@@ -7,7 +7,7 @@ import "./style.css"
 
 import { NOISE_URL, UI_ICONS, icon } from "./art"
 import { asset, assetsMatching, preload, titleImage } from "./assets"
-import { setLeviathanLoopPaused, startLoops } from "./loops"
+import { setLeviathanLoopPaused, startLoops, attachWheelLoops } from "./loops"
 import bgFar from "./assets/bg/bg_layer_far_fog.webp"
 import bgMid from "./assets/bg/bg_layer_mid_stacks_ship.webp"
 import bgFront from "./assets/bg/bg_layer_front_kelp.webp"
@@ -493,6 +493,7 @@ async function depthWheel(mode: string, tier: string | null): Promise<void> {
       <div class="wheel-result" aria-live="polite"></div></div></div>`)
   translateTree(el)
   document.body.append(el)
+  attachWheelLoops(el.querySelector<HTMLElement>(".wheel")!)
   const rot = el.querySelector<SVGGElement>(".wheel-rot")!
   const ms = reduce ? 0 : WHEEL_SPIN_MS * speed()
   let skip: () => void = () => {}
