@@ -345,3 +345,38 @@ the same way the reference keeps its tiers visually distinct.
   - Characters face the grid: hero faces RIGHT, Leviathan faces LEFT
     (the hit frame may turn away; the slain frame faces left).
   - Same canvas size for every hero rig layer, and they re-stack exactly.
+
+
+=====================================================================
+ I. H1 JELLYFISH — REGENERATE  (added after the symbol review)
+=====================================================================
+Problem: the jellyfish came with a painted checkerboard, and because the
+creature is translucent the checkerboard is painted THROUGH its bell and
+tentacles. That cannot be keyed out. A pure-green background has the same
+trap: green would show through the translucent body.
+
+Fix: paint the jellyfish directly ON the dark backing tile (section H). The
+creature symbols sit on that tile in game anyway, so no transparency is needed
+and nothing can show through.
+
+I-1  H1 JELLYFISH ON DARK TILE  (recommended)
+Settings: 1:1, 1254x1254 (same size as the other symbols), full-bleed, PNG.
+Attach H2_nautilus / H3_anglerfish / H4_kraken (art/generated/symbols/) as style
+reference so the painting matches.
+Prompt:
+A square slot game symbol tile: a deep ink-grey #222A2D panel with a soft darker
+vignette, faint sumi-e ink-wash water texture and fine paper grain, a thin rough
+hand-drawn black ink border #171B1D with softly rounded corners; centred on the
+panel, filling about 75% of it, a drifting jellyfish with a domed pale grey bell
+with soft white highlights and dark ink shading, frilly oral arms and long thin
+trailing tentacles glowing violet-pink from within, the dark panel visible
+through the gaps between the tentacles. Semi-realistic anime cel shading with
+clean black ink linework, watercolour texture, soft light from the top left,
+same painting style as the reference creatures. Professional 2D slot game symbol.
+Avoid: checkerboard pattern, white background, green background, transparent
+background, text, letters, cute face, 3D render, photorealistic.
+
+I-2  ISOLATED VERSION (only if you need it without the tile)
+Use a tool with a real transparency option ([ALPHA]) and say "the bell and
+tentacles are opaque painted shapes, not see-through". Do NOT use the green
+key for this creature.
