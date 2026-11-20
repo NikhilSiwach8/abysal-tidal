@@ -118,6 +118,7 @@ body[data-tier="H"] .scene { filter: hue-rotate(230deg) saturate(1.5) brightness
 }
 .cell svg { width: 100%; height: 100%; display: block; overflow: visible; }
 .cell.mega { padding: 0; }
+.cell.mega svg { overflow: hidden; } /* each cell shows only its slice of the Leviathan */
 .cell.out { transition: top calc(.22s * var(--spd)) ease-in, opacity calc(.22s * var(--spd)); top: 110% !important; opacity: 0; }
 .cell.win svg { animation: glow calc(.6s * var(--spd)) ease-in-out infinite alternate; }
 @keyframes glow { from { filter: drop-shadow(0 0 0 var(--teal-hi)); } to { filter: drop-shadow(0 0 10px var(--teal-hi)) brightness(1.25); } }
@@ -141,7 +142,7 @@ body[data-tier="H"] .scene { filter: hue-rotate(230deg) saturate(1.5) brightness
 /* ---------------------------------------------------------------- control bar */
 .bar {
   position: fixed; z-index: 6; left: 50%; bottom: max(10px, env(safe-area-inset-bottom)); transform: translateX(-50%);
-  width: min(calc(var(--g) * 1.55), 96vw); height: clamp(70px, 9vh, 96px);
+  width: min(max(calc(var(--g) * 1.55), 780px), 96vw); height: clamp(70px, 9vh, 96px);
   display: grid; align-items: center; gap: 10px; padding: 0 16px;
   grid-template-columns: auto auto 1.5fr 1.4fr 1.2fr auto auto auto;
   grid-template-areas: "buy menu bal win bet pm spin auto";
@@ -158,6 +159,7 @@ body[data-tier="H"] .scene { filter: hue-rotate(230deg) saturate(1.5) brightness
 .read.winr { grid-area: win; background: #0c0f10; border-radius: 10px; padding: 4px 8px; }
 .read.winr .v { color: var(--gold); }
 .read.betr { grid-area: bet; }
+.read .v.long { font-size: clamp(11px, 1.05vw, 16px); }
 .read .x { font: 11px var(--f-lil); color: var(--gold); }
 .pm { grid-area: pm; display: flex; flex-direction: column; gap: 4px; }
 .round { width: 32px; height: 32px; border-radius: 50%; background: var(--ink-2); border: 2px solid #000; display: grid; place-items: center; }

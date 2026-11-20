@@ -194,13 +194,18 @@ function banner(text: string) {
   b.innerHTML = text ? `<span>${t(text)}</span>` : ""
   translateTree(b)
 }
+function fitReadout(el: HTMLElement, text: string) {
+  el.textContent = text
+  el.classList.toggle("long", text.length > 11)
+}
 function setWinReadout(units: number) {
+  units = Math.min(units, WINCAP * 100) // a round never shows more than the cap
   st.shownWin = units
-  $(".winr .v").textContent = units > 0 ? fmt(bookToApi(units)) : "–"
+  fitReadout($(".winr .v"), units > 0 ? fmt(bookToApi(units)) : "–")
 }
 function setBalance(api: number) {
   st.balance = api
-  $(".bal .v").textContent = fmt(api)
+  fitReadout($(".bal .v"), fmt(api))
 }
 function updateBetReadout() {
   st.bet = st.levels[st.betIdx] ?? API
