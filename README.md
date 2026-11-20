@@ -113,6 +113,11 @@ Re-run it after replacing any art. The characters are split into animation layer
 tail and eyes for the hero; head and gills for the Leviathan) by `python3 tools/rig_characters.py`;
 re-run it after replacing `hero_idle` or `leviathan_idle`. Ambient loops follow section 9 of
 `art/ABYSSAL_TIDE_ASSET_PROMPTS.txt` and switch off under the OS "reduce motion" setting. Symbols sit on the parchment multiplier-spot tile
+Pre-rendered loops (`video/`, Remotion) play over the live animation: hero, Leviathan
+and logo as transparent VP9 WebM, the background as WebM/MP4 (landscape only). They take
+over only once playing; Safari (no VP9 alpha), reduced-motion players and any load
+failure keep the live animation. Re-render into `frontend/src/assets/video/` with the
+commands in `video/README.md`.
 (tinted by spot level); specials are full panels; the Leviathan mega symbol is sliced
 per cell. Painted overlay titles are used except in social-casino sessions, which show
 translated text because several titles contain restricted words ("WIN").

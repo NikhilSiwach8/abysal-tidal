@@ -7,6 +7,7 @@ import "./style.css"
 
 import { NOISE_URL, UI_ICONS, icon } from "./art"
 import { asset, assetsMatching, preload, titleImage } from "./assets"
+import { setLeviathanLoopPaused, startLoops } from "./loops"
 import bgFar from "./assets/bg/bg_layer_far_fog.webp"
 import bgMid from "./assets/bg/bg_layer_mid_stacks_ship.webp"
 import bgFront from "./assets/bg/bg_layer_front_kelp.webp"
@@ -308,6 +309,7 @@ function setDamage(d: number, hit = false) {
     lev.classList.add("recoil")
   }
   $(".leviathan").classList.toggle("slain", left === 0)
+  setLeviathanLoopPaused(left === 0)
 }
 function setTierUi(tier: string | null, fs = 0) {
   st.tier = tier
@@ -981,6 +983,7 @@ async function boot() {
   preload([...CODES.map(symbolUrl), asset("fx/overlay_backdrop"), asset("fx/ink_splash"), asset("fx/glow_ring"), asset("fx/water_slash"), ...assetsMatching("lettering/title_")])
   if (params.get("social") === "true") setSocial(true)
   buildDom()
+  startLoops()
   initialBoard()
   setDamage(0)
   setTierUi(null)
