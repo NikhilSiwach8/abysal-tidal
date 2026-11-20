@@ -1,0 +1,347 @@
+=====================================================================
+ ABYSSAL TIDE — FIX / REGENERATION PROMPTS (copy-paste ready)
+ Companion to ABYSSAL_TIDE_ASSET_PROMPTS.txt. Only the assets that need
+ redoing after the first review are here.
+=====================================================================
+
+Summary of what to redo
+-----------------------
+  #   Asset                               Problem found                         Section
+  1   All 4 background images             1672 px wide, soft above 1440p        A
+  2   Far fog background layer            stone arches duplicate the mid layer  B
+  3   Portrait background (phones)        missing                               C
+  4   Hero scarf + hood-cloth layers      painted checkerboard, 3 panels on one D
+                                          canvas, not aligned to the idle pose
+  5   Hero idle + victory                 1536 px tall, slightly soft on 4K     E
+  6   Leviathan hit / recoil              painted checkerboard (no alpha)       F
+  7   Leviathan slain                     painted checkerboard, upright and     G
+                                          alert (not defeated), faces right
+  8   H1-H4 creature symbols (optional)   no tile behind them, so the graded    H
+                                          free-spin background shows through
+
+Keep as they are (approved): hero reference sheet, hero idle pose, hero victory
+pose (content), Leviathan reference sheet, Leviathan idle pose, background
+composition and colours.
+
+
+---------------------------------------------------------------------
+ READ FIRST: why the checkerboards happened and how to avoid them
+---------------------------------------------------------------------
+If a tool cannot export real transparency, the words "transparent background"
+make it PAINT a grey-and-white checkerboard into the picture. It looks
+transparent in a preview but is solid pixels, so it shows up in the game.
+
+Use whichever applies to your tool:
+
+  1. Tool HAS a real transparency option (GPT-Image "background: transparent",
+     Ideogram / Leonardo "transparent background" toggle, Photoshop Firefly
+     "remove background"): turn the OPTION on, and keep the prompt sentence
+     "isolated on a transparent background". Export PNG (not JPG / WebP-lossy).
+
+  2. Tool has NO transparency option (Midjourney, most Flux / SDXL front-ends):
+     do NOT write "transparent". Use the chroma-key sentence instead:
+       "isolated on a perfectly flat solid pure green #00FF00 background with no
+        shadows, no gradient, no texture, no floor"
+     Then remove the green with any chroma-key / background-removal tool.
+     Pure green is used because the art contains white teeth, foam, bubbles and
+     pale belly plates; a white or checkered background would be eaten together
+     with them. No asset in this game uses pure green.
+
+  3. Always check the result: open it in an editor, the corners must be
+     alpha 0. If you see a checkerboard pattern INSIDE the image (e.g. in holes
+     of torn fins or cloth), it is painted — reject it.
+
+Every prompt below has two interchangeable background lines:
+  [ALPHA]  for tools with a transparency option
+  [GREEN]  for tools without one
+Paste the prompt and keep only ONE of the two lines.
+
+Reference images: attach your own approved images as references (they are
+original Abyssal Tide art):
+  STYLE   art/generated/background/bg_composite.webp        (style anchor)
+  HERO    art/generated/hero/hero_reference_sheet.webp      (character ref)
+  IDLE    art/generated/hero/hero_idle.webp                 (pose/canvas ref)
+  LEVI    art/generated/leviathan/leviathan_reference_sheet.webp
+  LIDLE   art/generated/leviathan/leviathan_idle.webp
+Midjourney: --sref <STYLE url> --sw 200, and --cref <HERO or LEVI url> --cw 100.
+Other tools: attach as "style reference" / "character reference".
+
+
+=====================================================================
+ A. BACKGROUNDS AT FULL RESOLUTION  (fixes #1)
+=====================================================================
+Option A1 — Upscale (fastest, keeps the approved images exactly):
+  Upscale each of the 4 approved background images 2x with an art-preserving
+  upscaler (Topaz Gigapixel "Art & CG", Magnific "anime/illustration" with
+  creativity 0-1, Upscayl "digital-art", or Photoshop Super Resolution).
+  Target 3344x1882 or larger. Keep transparency on the kelp and stacks layers
+  (export PNG). Do NOT use a creative/hallucinating upscale setting: it redraws
+  the kelp and rocks and breaks the match between layers.
+
+Option A2 — Regenerate at full size: use the prompts below (A-1 to A-3) at
+3200x1800 (16:9). Attach STYLE as the style reference so they match.
+
+A-1  FOREGROUND LAYER — kelp and seabed (replaces bg_layer_front_kelp)
+Settings: 16:9, 3200x1800, PNG.
+Prompt:
+Foreground parallax layer for a slot game: tall dark kelp strands with long
+twisting ribbon leaves rising from the bottom-left and bottom-right corners and
+curling toward the centre, a dark rocky seabed strip along the bottom edge with
+rounded boulders, a few pale scallop shells and pebbles, a soft pale fog band
+in front of the seabed, the entire centre and the whole top half are empty.
+Dark fantasy anime illustration, near-black ink silhouettes #171B1D with subtle
+grey rim light, clean confident ink linework, Japanese sumi-e ink-wash texture,
+subtle paper grain, professional 2D game background layer, 3200x1800.
+[ALPHA] isolated on a transparent background
+[GREEN] isolated on a perfectly flat solid pure green #00FF00 background with no shadows, no gradient, no texture
+Avoid: characters, creatures, text, logo, sky, colourful plants, photorealistic,
+3D render, checkerboard pattern.
+
+A-2  MIDDLE LAYER — sea stacks and sunken ship (replaces bg_layer_mid_stacks_ship)
+Settings: 16:9, 3200x1800, PNG.
+Prompt:
+Middle-ground parallax layer for a slot game: clusters of jagged mid-grey sea
+stack spires and one natural stone arch on the far left, the broken mast,
+crossbeams, torn hanging sails and rope ladders of a sunken sailing ship lying
+tilted on its side on the right with more spires and a second stone arch
+behind it, a few small ember-coral #E8553E coral fronds growing on the dark
+boulders, soft fog fading the lower edges, the centre third completely empty.
+Dark fantasy anime illustration, clean black ink linework, Japanese sumi-e
+ink-wash shading in mid greys, soft light from the top left, subtle paper grain,
+professional 2D game background layer, 3200x1800.
+[ALPHA] isolated on a transparent background
+[GREEN] isolated on a perfectly flat solid pure green #00FF00 background with no shadows, no gradient, no texture
+Avoid: characters, creatures, text, logo, sky, full background fill,
+photorealistic, oversaturated, checkerboard pattern.
+
+
+=====================================================================
+ B. FAR LAYER WITHOUT ARCHES  (fixes #2)
+=====================================================================
+The middle layer already has the stone arches. The far layer must not repeat
+them, or two copies slide apart when the layers move.
+
+B-1  FAR LAYER — surface light and fog (replaces bg_layer_far_fog)
+Settings: 16:9, 3200x1800, full-bleed (no transparency needed).
+Prompt:
+Far background layer for an underwater slot game: seen from deep below, the
+rippling bright water surface across the top edge, four soft diagonal shafts of
+pale light falling from upper left toward the lower middle, a pale misty
+gradient from light fog grey #DCDFD7 at the top to cool mid grey #6F7F87 at the
+bottom, only extremely faint distant needle-shaped rock spires barely visible
+in the haze near the horizon, no arches, no ship, no large shapes, tiny
+specks of marine snow, very soft and low contrast. Japanese sumi-e ink-wash
+painting, desaturated greyscale, subtle paper grain, soft diffused light from
+the top left, professional 2D game background layer, 3200x1800.
+Avoid: stone arches, rock arches, rings, ship, kelp, characters, creatures,
+text, dark foreground, sharp details, oversaturated colours.
+
+
+=====================================================================
+ C. PORTRAIT BACKGROUND FOR PHONES  (fixes #3)
+=====================================================================
+On phones the grid sits in the upper-middle; the bottom ~25% is behind the
+control bar. Keep the middle calm and put interest at the sides and bottom.
+
+C-1  PORTRAIT — full composite
+Settings: 9:16, 1800x3200, full-bleed.
+Prompt:
+Tall vertical underwater environment background for a mobile slot game, no
+characters: the rippling bright water surface at the very top with shafts of
+pale light falling diagonally, a deep trench below, tall jagged dark sea stack
+spires and a natural stone arch on the left edge, the broken mast and torn
+sails of a sunken ship leaning against the right edge, tall dark kelp strands
+in silhouette rising along both lower sides, a dark rocky seabed with boulders,
+pale scallop shells and small ember-coral #E8553E coral fronds across the bottom
+quarter, thick grey fog filling the centre so the middle stays calm, empty and
+low contrast. Dark fantasy anime illustration, semi-realistic cel shading,
+clean black ink linework, Japanese sumi-e ink-wash painting influence,
+desaturated greyscale palette of ink black #171B1D and fog grey #DCDFD7,
+ember coral as the only colour accent, soft diffused light from the top left,
+subtle paper grain, high detail, professional 2D slot game background,
+1800x3200.
+Avoid: characters, creatures, text, logo, UI, busy centre, photorealistic,
+3D render, oversaturated, neon.
+
+(Optional for the same parallax as desktop: also generate the portrait as three
+layers using A-1, A-2 and B-1 with "9:16, 1800x3200" and "rising along the left
+and right edges" in place of the corner wording.)
+
+
+=====================================================================
+ D. HERO ANIMATION LAYERS  (fixes #4)
+=====================================================================
+Choose ONE route.
+
+ROUTE D-SIMPLE (recommended): skip separate layers.
+  Animate hero_idle.webp as a single image: the game already applies a 5 s
+  breathing loop. For moving cloth, make a seamless video loop with the
+  "HERO IDLE" image-to-video prompt in ABYSSAL_TIDE_ASSET_PROMPTS.txt (section
+  9.2), using hero_idle.webp as both start and end frame, then export it as a
+  transparent WebM / sprite sequence. Nothing to regenerate here.
+
+ROUTE D-RIG (for Spine / DragonBones): every layer on the SAME canvas as the
+idle pose, pixel-aligned, so the pieces stack back into the exact idle image.
+  Canvas: 1024x1536 (or 1536x2304 if you upscale the idle first; all layers
+  must use the same size). Attach IDLE as the image reference / init image and
+  use image-to-image or "edit" mode (GPT-Image edit, Photoshop Generative Fill,
+  Leonardo Canvas, SDXL inpainting) so the pose and position do not move.
+
+D-1  BODY WITHOUT SCARF AND HOOD TAIL
+Settings: 2:3, same canvas as hero_idle.webp, edit/inpaint mode on IDLE.
+Prompt:
+The exact same hooded harpooner, same pose, same position, same size, same
+lighting and line work as the reference image, but with the long teal scarf
+ends and the torn hood cloth tail removed: the scarf is reduced to a short
+neat wrap around the neck and the hood ends cleanly at the shoulders, the
+hidden areas behind them are painted in naturally (coat, shoulder plate, rock).
+Dark fantasy anime illustration, semi-realistic cel shading, clean black ink
+linework, sumi-e ink-wash shading, greyscale with teal as the only accent.
+[ALPHA] isolated on a transparent background
+[GREEN] isolated on a perfectly flat solid pure green #00FF00 background with no shadows, no gradient, no texture
+Avoid: changing the pose, moving the character, different proportions, extra
+fingers, text, checkerboard pattern.
+
+D-2  SCARF LAYER ONLY
+Settings: 2:3, same canvas as hero_idle.webp, edit/inpaint mode on IDLE.
+Prompt:
+Only the long torn teal #2BB3A3 scarf of the hooded harpooner from the
+reference image, in exactly the same position, size and shape it has in the
+reference, wrapped around where the neck would be and trailing to the left in
+a slow underwater current, ragged torn ends with holes, clean black ink outline,
+cel shading, sumi-e ink-wash texture; everything else in the image removed —
+no body, no harpoon, no rock.
+[ALPHA] isolated on a transparent background
+[GREEN] isolated on a perfectly flat solid pure green #00FF00 background with no shadows, no gradient, no texture
+Avoid: body parts, harpoon, rock, extra cloth, moving the scarf, text,
+checkerboard pattern.
+
+D-3  HOOD-CLOTH TAIL LAYER ONLY
+Settings: 2:3, same canvas as hero_idle.webp, edit/inpaint mode on IDLE.
+Prompt:
+Only the torn charcoal-grey cloth tail that flows from the back of the
+harpooner's hood in the reference image, in exactly the same position, size and
+shape it has in the reference, ragged edges with holes, drifting in a slow
+underwater current, clean black ink outline, cel shading, sumi-e ink-wash
+texture; everything else in the image removed — no body, no scarf, no harpoon.
+[ALPHA] isolated on a transparent background
+[GREEN] isolated on a perfectly flat solid pure green #00FF00 background with no shadows, no gradient, no texture
+Avoid: body parts, teal scarf, harpoon, rock, moving the cloth, text,
+checkerboard pattern.
+
+Check: stack D-1 + D-3 + D-2 (bottom to top) in an editor at 100%. It must look
+identical to hero_idle.webp. If any edge shifts, redo that layer.
+
+
+=====================================================================
+ E. HERO AT HIGHER RESOLUTION  (fixes #5)
+=====================================================================
+Do not regenerate (the approved poses would change). Upscale instead:
+  hero_idle.webp and hero_victory.webp -> 1.5x (1536x2304) with an
+  art-preserving upscaler (Topaz "Art & CG", Upscayl "digital-art", Magnific
+  illustration mode at creativity 0). Keep transparency, export PNG.
+  If you use ROUTE D-RIG, upscale the idle FIRST and build the layers on the
+  upscaled canvas.
+
+
+=====================================================================
+ F. LEVIATHAN HIT / RECOIL WITH REAL TRANSPARENCY  (fixes #6)
+=====================================================================
+The approved pose and burst are good; only the background is wrong.
+
+Option F1 — rescue the existing image: run
+  art/generated/leviathan/leviathan_hit_NOT_TRANSPARENT.webp through a
+  background-removal tool that handles fine holes (Photoshop "Remove
+  Background" + Select and Mask, remove.bg, Clipdrop). Then zoom into every
+  hole in the torn fins, the water splash and the black ink droplets and erase
+  any checkerboard left inside them. If that takes too long, use F2.
+
+Option F2 — regenerate:
+Settings: 3:5 portrait, 1320x2200 (or at least 971x1620), PNG.
+Attach LEVI as character reference and LIDLE as style/composition reference.
+Prompt:
+The Leviathan sea serpent boss recoiling from a heavy hit: the same creature as
+the reference — dark slate overlapping scales with pale bone-white belly
+plates, one long pale ridged curved horn, ragged dark-teal torn fins along the
+neck and spine, three glowing teal #2BB3A3 gill slits, barnacle clusters and
+red scars, a single amber-gold #FFD36B slit eye — its body in a tall S-coil
+rising from a churning water splash at the bottom, its head snapped back and up
+to the right, jaws wide open in a roar of pain showing jagged white teeth and an
+ember-coral #E8553E glowing throat, a burst of black ink-water droplets and
+ember sparks exploding from the side of its neck where it was struck. Dark
+fantasy anime illustration, semi-realistic cel shading, clean confident black
+ink linework of varied weight, Japanese sumi-e ink-wash shading, desaturated
+greyscale palette with amber, teal and ember coral as small accents only, soft
+rim light from the top left, high detail, professional 2D slot game boss art.
+[ALPHA] isolated on a transparent background
+[GREEN] isolated on a perfectly flat solid pure green #00FF00 background with no shadows, no gradient, no texture
+Avoid: checkerboard pattern, background scenery, sky, text, logo, wings, legs,
+arms, second horn on the far side covering the face, photorealistic, 3D render,
+cropped head, cropped tail.
+
+
+=====================================================================
+ G. LEVIATHAN SLAIN — DEFEATED, FACING LEFT  (fixes #7)
+=====================================================================
+Optional: the game already animates the defeat on the idle image (sinks 18%,
+tilts 6 degrees, fades to greyscale at 35% opacity over 1.6 s). Generate this
+only if you want a dedicated "defeated" frame.
+
+Settings: 3:5 portrait, 1320x2200 (or at least 971x1620), PNG.
+Attach LEVI as character reference and LIDLE as composition reference.
+Prompt:
+The defeated Leviathan sea serpent boss, the same creature as the reference,
+FACING LEFT like the reference pose, sinking and collapsing: its long coiled
+body slumped and sagging downward and tilted to the right, the head drooping
+low on the left side with the chin resting near the coils, jaws slack and
+half open, the single eye dim, grey and half closed, the gill slits dark and
+unlit, the torn fins limp and hanging, scales cracking and dissolving at the
+edges into wisps of black ink and rising bubbles, a few broken scales drifting
+away, the water around its base calm. Fully desaturated greyscale, no accent
+colour at all. Dark fantasy anime illustration, semi-realistic cel shading,
+clean black ink linework, Japanese sumi-e ink-wash shading, soft dim light from
+the top left, melancholic mood, high detail, professional 2D slot game boss art.
+[ALPHA] isolated on a transparent background
+[GREEN] isolated on a perfectly flat solid pure green #00FF00 background with no shadows, no gradient, no texture
+Avoid: checkerboard pattern, facing right, upright alert pose, glowing eyes,
+glowing gills, open roaring jaw, colour, background scenery, text, wings, legs,
+photorealistic, 3D render.
+
+
+=====================================================================
+ H. SOLID TILE BACKING FOR H1-H4  (fixes #8, optional)
+=====================================================================
+H1 Jellyfish, H2 Nautilus, H3 Anglerfish and H4 Kraken were specified without a
+tile, so the coloured free-spin background shows through their transparent
+edges. Use one shared opaque backing tile under all four (generate once,
+composite each creature on top in code or an editor).
+
+H-1  DARK BACKING TILE FOR CREATURE SYMBOLS
+Settings: 1:1, 1024x1024, full-bleed square (no transparency).
+Prompt:
+A single square slot game symbol tile, front view, flat: a deep ink-grey
+#222A2D panel with a soft darker vignette toward the edges, a faint sumi-e
+ink-wash water texture and fine paper grain, a thin rough hand-drawn black ink
+border #171B1D with dry-brush texture, softly rounded corners, completely empty
+in the middle. Japanese ink-wash texture, flat lighting, professional 2D slot
+game symbol frame.
+Avoid: any symbol or drawing in the middle, text, 3D bevel, glossy, bright
+colours, gradients other than the soft vignette.
+
+Use it like the parchment tile (4.0): creature centred at 75% of the tile.
+The darker panel separates the high symbols from the pale parchment lows,
+the same way the reference keeps its tiers visually distinct.
+
+
+=====================================================================
+ FINAL CHECKLIST BEFORE SENDING
+=====================================================================
+  - Corners have alpha 0 on every layer, character and symbol (or are pure
+    #00FF00 that you have keyed out). No painted checkerboard anywhere,
+    including inside holes in fins, cloth and splashes.
+  - PNG for anything with transparency.
+  - Background layers 3200x1800 or larger, portrait 1800x3200.
+  - Hero idle and victory at least 1536x2304; Leviathan at least 1320x2200.
+  - Characters face the grid: hero faces RIGHT, Leviathan faces LEFT
+    (the hit frame may turn away; the slain frame faces left).
+  - Same canvas size for every hero rig layer, and they re-stack exactly.
