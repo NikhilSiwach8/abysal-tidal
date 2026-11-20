@@ -1,0 +1,23 @@
+{
+  "name": "abyssal-tide",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "demo-books": "../math-sdk/env/bin/python scripts/export_demo_books.py"
+  },
+  "dependencies": {
+    "@fontsource/lilita-one": "5.3.0",
+    "@fontsource/outfit": "5.3.0",
+    "@fontsource/permanent-marker": "5.3.0",
+    "stake-engine": "0.1.32"
+  },
+  "devDependencies": {
+    "typescript": "5.8.3",
+    "vite": "6.3.5"
+  }
+}

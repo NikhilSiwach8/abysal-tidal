@@ -1,0 +1,11 @@
+math-sdk/
+vendor/
+node_modules/
+dist/
+__pycache__/
+*.log
+.DS_Store
+# Third-party skills without an upstream license are fetched by scripts/install-skills.sh, not committed.
+.claude/skills/*
+!.claude/skills/stake-math-sdk/
+!.claude/skills/stake-web-sdk/
