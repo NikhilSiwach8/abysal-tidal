@@ -1,0 +1,254 @@
+=====================================================================
+ ABYSSAL TIDE — DEPTH WHEEL PROMPTS (copy-paste ready)
+ Companion to ABYSSAL_TIDE_ASSET_PROMPTS.txt. Art for the wheel that
+ spins after buying "Mystery Depths" or "Abyssal Mystery".
+=====================================================================
+
+How the wheel is built (read once)
+----------------------------------
+The slice SIZES are the real odds and differ between the two buys:
+   Mystery Depths   Still Water 60%  Undertow 25%  Maelstrom 10%  Abyssal 5%
+   Abyssal Mystery  Still Water 60%  Undertow 30%                 Abyssal 10%
+Image generators cannot draw exact angles, so do NOT generate a finished
+wheel with slices. The game draws the slices in code at the exact sizes and
+lays your painted parts over and under them:
+
+   W1 rim ring (frame + pegs)      on top of the slices
+   W2 slice wash textures (x4)     clipped into each slice in code
+   W3 tier emblems (x4)            one small emblem inside each slice
+   W4 centre hub cap               centre of the wheel
+   W5 pointer                      12 o'clock, does not spin
+   W6 back glow / burst            behind the wheel
+   W7 "THE DEPTH WHEEL" lettering  title above the wheel
+   W8 "STILL WATER" lettering      result title for no bonus
+   W9 landing flash sprite sheet   plays on the winning slice
+   W10 idle + spin animation       optional video loops
+
+Consistency rules (same as the main prompt file)
+   * Use your STYLE ANCHOR (prompt 0.1) as the style reference for every image:
+       Midjourney  --sref <anchor-url> --sw 200
+       GPT-Image / Ideogram / Leonardo / Flux: attach the anchor as style reference.
+   * Use the existing buy-menu "mystery" illustration (question mark + sealed
+     chest) as a second reference for W4, so the hub matches the buy card.
+   * Use the existing title lettering (UNDERTOW / MAELSTROM / ABYSSAL) as the
+     reference for W7 and W8, so all titles share one brush hand.
+   * Keep one seed for the whole wheel family.
+   * Light always soft from the top left. Same palette hex codes, no new colours.
+
+Palette (exact values)
+   Ink black        #171B1D     Ink grey        #222A2D
+   Fog paper        #DCDFD7     Fog paper dark  #C9CEC6
+   Abyss teal       #2BB3A3     Teal glow       #5FE3D2
+   Ember coral      #E8553E     Gold            #FFD36B
+   Abyssal purple   #A26FF0     Highlight white #F3F5F2
+Tier colours on the wheel (match the title lettering slashes):
+   Still Water = ink grey #222A2D     Undertow = gold #FFD36B
+   Maelstrom   = abyss teal #2BB3A3   Abyssal  = abyssal purple #A26FF0
+
+Transparency (avoid painted checkerboards)
+   Turn ON the tool's real transparent-background option and export PNG.
+   If your tool has none, replace "isolated on a transparent background" with
+   "isolated on a flat pure white #FFFFFF background" (W1, W3, W4, W5, W7-W9)
+   or "on a flat pure black #000000 background" (W6 glow), and I key it out.
+
+NEGATIVE (paste into the negative field, or append "Avoid: ..." for tools
+without one):
+text, letters, numbers, watermark, signature, logo, photorealistic, 3D render,
+plastic, glossy CGI, chrome, metallic bevel, casino roulette, playing cards,
+dice, poker chips, neon, rainbow colours, oversaturated, lens flare, blurry,
+low resolution, jpeg artifacts, checkerboard pattern, samurai, ninja, oni mask,
+katana, bamboo, torii gate, pagoda, cherry blossoms, Japanese mask.
+(The last line keeps us away from the reference game's subject matter.)
+
+
+---------------------------------------------------------------------
+ W1  WHEEL RIM RING (frame with pegs, empty centre)
+---------------------------------------------------------------------
+Settings: 1:1, 2048x2048, TRANSPARENT background, perfectly centred, front view.
+Save as: art/generated/ui/wheel/wheel_rim.png
+Prompt:
+A perfectly circular ring frame for a prize wheel, straight-on front view,
+centred, the centre completely empty and transparent: a thick band of pale
+weathered fog parchment #DCDFD7 with paper grain and faint ink-wash stains,
+bordered inside and outside by rough confident black dry-brush ink lines
+#171B1D, forty evenly spaced small round black ink rivets around the band,
+old ship rope wrapped around the ring in four places at 12, 3, 6 and 9
+o'clock, tiny barnacles on the rope, soft light from the top left. Dark
+fantasy anime illustration, semi-realistic cel shading, Japanese sumi-e
+ink-wash painting influence, desaturated greyscale, professional 2D slot game
+UI asset, isolated on a transparent background.
+Avoid: anything inside the ring, slices, colours, text, numbers, 3D, metal, gold.
+Note: the ring's inner edge should sit at about 86% of the image radius.
+
+---------------------------------------------------------------------
+ W2  SLICE WASH TEXTURES (4 images, one per tier colour)
+---------------------------------------------------------------------
+Settings: 1:1, 1024x1024, full-bleed (no transparency), seamless if possible.
+Save as: art/generated/ui/wheel/wash_still.png, wash_undertow.png,
+         wash_maelstrom.png, wash_abyssal.png
+Shared prompt (replace [COLOUR] and [DETAIL]):
+A flat full-frame square texture of hand-painted sumi-e ink wash on rough
+paper, [COLOUR], soft uneven brush pools and dry-brush streaks running from
+the centre outward, faint paper grain, [DETAIL], evenly lit, no focal object,
+seamless edges. Professional 2D slot game texture.
+Avoid: objects, text, frames, borders, vignette, 3D, glossy.
+   Still Water: [COLOUR] = "deep ink grey #222A2D fading to ink black #171B1D"
+                [DETAIL] = "calm, almost still water ripples barely visible"
+   Undertow:    [COLOUR] = "warm gold #FFD36B with darker ochre pools"
+                [DETAIL] = "long pulling current streaks"
+   Maelstrom:   [COLOUR] = "abyss teal #2BB3A3 with teal glow #5FE3D2 highlights"
+                [DETAIL] = "swirling spiral brush strokes like a whirlpool"
+   Abyssal:     [COLOUR] = "abyssal purple #A26FF0 deepening to near black"
+                [DETAIL] = "faint glowing specks like deep-sea plankton"
+
+---------------------------------------------------------------------
+ W3  TIER EMBLEMS (4 small icons, one inside each slice)
+---------------------------------------------------------------------
+Settings: 1:1, 1024x1024, TRANSPARENT background, centred, generous margin.
+Save as: art/generated/ui/wheel/emblem_still.png, emblem_undertow.png,
+         emblem_maelstrom.png, emblem_abyssal.png
+Shared prompt (replace [SUBJECT]):
+[SUBJECT], a single bold simple emblem icon, centred, isolated on a
+transparent background, thick confident black ink outline #171B1D, sumi-e
+ink-wash shading, white #F3F5F2 highlights, soft light from the top left,
+readable at very small size. Dark fantasy anime illustration style,
+professional 2D slot game icon.
+Avoid: text, letters, numbers, background, frame, circle badge, 3D render.
+   Still Water: "a single closed scallop shell resting on three calm ripple
+                lines, ink grey and white only"
+   Undertow:    "a gold #FFD36B anchor pulled sideways by curling current lines"
+   Maelstrom:   "a teal #2BB3A3 whirlpool spiral with foam flecks"
+   Abyssal:     "a glowing purple #A26FF0 Leviathan eye with a slit pupil inside
+                a ring of dark scales"
+
+---------------------------------------------------------------------
+ W4  CENTRE HUB CAP
+---------------------------------------------------------------------
+Settings: 1:1, 1024x1024, TRANSPARENT background, perfectly centred, front view.
+Attach the buy-menu mystery illustration as a second reference.
+Save as: art/generated/ui/wheel/wheel_hub.png
+Prompt:
+A round centre cap for a prize wheel, straight-on front view, centred,
+isolated on a transparent background: a disc of pale fog parchment #DCDFD7
+with a thick rough black dry-brush ink rim #171B1D and a ring of small rivets,
+in the middle a small sealed old wooden treasure chest with rope bindings and a
+coral-red #E8553E wax seal, a big black dry-brush ink question mark curling
+behind the chest, faint teal #5FE3D2 glow leaking from the chest seam, soft
+light from the top left. Dark fantasy anime illustration, semi-realistic cel
+shading, sumi-e ink-wash, professional 2D slot game UI asset.
+Avoid: text, letters, numbers, 3D render, metal chrome, gems, coins.
+
+---------------------------------------------------------------------
+ W5  POINTER (harpoon tip, points straight down)
+---------------------------------------------------------------------
+Settings: 2:3, 800x1200, TRANSPARENT background, vertical, centred.
+Save as: art/generated/ui/wheel/wheel_pointer.png
+Prompt:
+A prize wheel pointer shaped like the barbed iron head of a whaling harpoon,
+pointing straight down, perfectly vertical and symmetrical, front view,
+isolated on a transparent background: dark ink-black iron #171B1D with
+hand-painted sumi-e shading, a short wrapped rope collar at the top with a
+small round rivet, a thin abyss-teal #5FE3D2 glow along the cutting edges, a
+few ink splatter flecks, soft light from the top left. Dark fantasy anime
+illustration, semi-realistic cel shading, professional 2D slot game UI asset.
+Avoid: text, shaft, hands, 3D render, chrome, gold, tilt.
+
+---------------------------------------------------------------------
+ W6  BACK GLOW / BURST (behind the wheel)
+---------------------------------------------------------------------
+Settings: 1:1, 2048x2048, TRANSPARENT background (or flat pure black #000000).
+Save as: art/generated/ui/wheel/wheel_glow.png
+Prompt:
+A circular burst of light and water seen straight-on, centred, isolated on a
+transparent background: a ring of glowing abyss teal #5FE3D2 sumi-e brush
+strokes swirling clockwise around an empty dark centre, flung droplets and
+foam flecks flying outward, a few thin ink-black #171B1D brush splashes mixed
+in, soft bloom, the outer edge fading to nothing. Japanese sumi-e ink-wash
+energy, professional 2D slot game effect.
+Avoid: objects in the centre, text, rainbow colours, lens flare, 3D.
+
+---------------------------------------------------------------------
+ W7  TITLE LETTERING — "THE DEPTH WHEEL"
+---------------------------------------------------------------------
+Settings: 4:1, 2400x600, TRANSPARENT background (Ideogram or GPT-Image for text).
+Attach the existing UNDERTOW / MAELSTROM title images as references.
+Save as: art/generated/lettering/title_depth_wheel.png
+Prompt:
+The exact words "THE DEPTH WHEEL" on one line, aggressive hand-painted
+dry-brush calligraphy lettering, white letters #F3F5F2 with ragged bristle
+edges and a thick black ink outline #171B1D, slight -3 degree tilt, an abyss
+teal #2BB3A3 brush-stroke slash behind the words, ink splatter flecks,
+isolated on a transparent background. Professional slot game title text,
+Japanese sumi-e brush energy.
+Avoid: misspelling, extra words, 3D letters, chrome, glossy, other text.
+Tip: generate 8-16 variations and keep one spelled correctly.
+
+---------------------------------------------------------------------
+ W8  RESULT LETTERING — "STILL WATER"
+---------------------------------------------------------------------
+Settings: 3:1, 2400x800, TRANSPARENT background.
+Save as: art/generated/lettering/title_still_water.png
+Prompt:
+The exact words "STILL WATER" on one line, hand-painted dry-brush calligraphy
+lettering, white letters #F3F5F2 with ragged bristle edges and a thick black
+ink outline #171B1D, slight -3 degree tilt, a calm ink-grey #222A2D
+brush-stroke slash behind the words with a few soft ripple lines, isolated on
+a transparent background. Professional slot game title text, Japanese sumi-e
+brush style, quieter and calmer than a win title.
+Avoid: misspelling, extra words, 3D letters, chrome, glossy, other text, gold.
+(UNDERTOW, MAELSTROM and ABYSSAL results reuse the titles you already made.)
+
+---------------------------------------------------------------------
+ W9  LANDING FLASH (sprite sheet, plays over the winning slice)
+---------------------------------------------------------------------
+Settings: 2:1, 2048x1024, TRANSPARENT background.
+Save as: art/generated/effects/wheel_flash_sheet.png
+Prompt:
+A sprite sheet of 8 animation frames in a 4 by 2 grid with clear spacing,
+isolated on a transparent background, showing a splash of light bursting
+outward and fading: frame 1 a small white #F3F5F2 spark, frames 2-4 an
+expanding ring of white and teal glow #5FE3D2 sumi-e brush strokes with
+flying droplets, frames 5-8 the ring breaking into fading foam flecks and
+mist. Each frame centred in its cell, same scale reference. Japanese sumi-e
+brush style, professional 2D game effect sprite sheet.
+Avoid: background, text, overlapping frames, 3D, rainbow colours.
+(The game tints this to the tier colour, so keep it white and teal.)
+
+---------------------------------------------------------------------
+ W10  ANIMATION (optional video loops; the game already animates the spin)
+---------------------------------------------------------------------
+The spin, slow-down and stop are done in code so the wheel always lands on
+the real outcome. Only these two decorative loops are worth generating.
+Tools: Runway Gen-4 / Kling / Luma (image-to-video) using the image named.
+
+W10.1  Hub idle loop
+Input image: W4 hub cap.  Length: 4 s, seamless loop, camera locked.
+Prompt:
+The treasure chest gently rocks a few degrees, the teal glow in its seam
+slowly pulses brighter and dimmer, the ink question mark's tail drifts like
+smoke and returns. Camera completely still, nothing else moves, loopable.
+Avoid: camera motion, zoom, new objects, the chest opening.
+
+W10.2  Back glow loop
+Input image: W6 back glow.  Length: 6 s, seamless loop, camera locked.
+Prompt:
+The ring of teal brush strokes slowly rotates clockwise, droplets drift
+outward and fade, the glow breathes softly. Camera completely still, centred,
+loopable, no new elements.
+Avoid: camera motion, zoom, flashes, colour change.
+
+
+---------------------------------------------------------------------
+ DELIVERY CHECKLIST
+---------------------------------------------------------------------
+  [ ] W1  wheel_rim.png            2048 sq, transparent, empty centre
+  [ ] W2  wash_still / undertow / maelstrom / abyssal.png   1024 sq
+  [ ] W3  emblem_still / undertow / maelstrom / abyssal.png 1024 sq, transparent
+  [ ] W4  wheel_hub.png            1024 sq, transparent
+  [ ] W5  wheel_pointer.png        800x1200, transparent, points down
+  [ ] W6  wheel_glow.png           2048 sq, transparent (or black)
+  [ ] W7  title_depth_wheel.png    spelled correctly
+  [ ] W8  title_still_water.png    spelled correctly
+  [ ] W9  wheel_flash_sheet.png    8 frames, 4x2
+  [ ] W10 hub / glow loops         optional, MP4 or WebM
+Send them over and I will key, size and wire them into the wheel.
