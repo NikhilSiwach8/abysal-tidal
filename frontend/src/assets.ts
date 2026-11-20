@@ -30,6 +30,8 @@ const TITLE_KEYS: Record<string, string> = {
   UNDERTOW: "title_undertow",
   MAELSTROM: "title_maelstrom",
   ABYSSAL: "title_abyssal_tier",
+  "THE DEPTH WHEEL": "title_depth_wheel",
+  "STILL WATER": "title_still_water",
 }
 
 /** Painted title image for an overlay heading, or null to fall back to text. */

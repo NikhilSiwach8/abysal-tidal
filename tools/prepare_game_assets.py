@@ -59,6 +59,8 @@ JOBS = [
     ("ui/wheel/wheel_rim.png", "ui/wheel/rim.webp", 1100),
     ("ui/wheel/wheel_hub.png", "ui/wheel/hub.webp", 360),
     ("ui/wheel/wheel_pointer.png", "ui/wheel/pointer.webp", 300),
+    ("ui/wheel/wheel_glow.png", "ui/wheel/glow.webp", 1100),
+    ("effects/wheel_flash_strip.png", "fx/wheel_flash.webp", 2048),
 ]
 GLOBS = [
     ("ui/powerups/*.png", "ui/pu", 96),

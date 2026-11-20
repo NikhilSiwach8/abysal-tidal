@@ -437,6 +437,22 @@ function wheelSvg(slices: [string, number][]): string {
     <image class="wheel-hub" href="${asset("ui/wheel/hub")}" x="-25" y="-25" width="50" height="50"/></svg>`
 }
 
+/** Flash sprite is painted teal; these filters recolour it per outcome. */
+const WHEEL_TINT: Record<string, string> = {
+  "": "grayscale(1) brightness(1.3)",
+  S: "hue-rotate(-128deg) saturate(1.6) brightness(1.1)",
+  U: "none",
+  H: "hue-rotate(95deg) saturate(1.3)",
+}
+
+/** Painted lettering where it exists (not in social-casino sessions), else text. */
+function paintedTitle(text: string, cls: string, color = ""): string {
+  const img = isSocial() ? null : titleImage(text)
+  return img
+    ? `<h2 class="${cls} painted"><img src="${img}" alt="${text}" draggable="false"></h2>`
+    : `<h2 class="${cls}"${color ? ` style="color:${color}"` : ""}>${t(text)}</h2>`
+}
+
 /** Total odds per outcome, shown under the wheel. */
 function wheelOdds(slices: [string, number][]): string {
   const total = new Map<string, number>()
@@ -471,8 +487,8 @@ async function depthWheel(mode: string, tier: string | null): Promise<void> {
   const name = MODES.find((m) => m.id === mode)?.name ?? ""
 
   const el = h(`<div class="overlay wheel-ov" role="dialog" aria-label="${t("Depth Wheel")}"><img class="ov-backdrop" src="${asset("fx/overlay_backdrop")}" alt="">
-    <div class="wheel-card"><h2 class="wheel-title">${t("THE DEPTH WHEEL")}</h2><p class="wheel-sub">${name}</p>
-      <div class="wheel"><img class="wheel-glow" src="${asset("fx/glow_ring")}" alt="">${wheelSvg(slices)}<img class="wheel-pointer" src="${asset("ui/wheel/pointer")}" alt="" draggable="false"></div>
+    <div class="wheel-card">${paintedTitle("THE DEPTH WHEEL", "wheel-title")}<p class="wheel-sub">${name}</p>
+      <div class="wheel"><img class="wheel-glow" src="${asset("ui/wheel/glow")}" alt="">${wheelSvg(slices)}<div class="wheel-flash" style="--tint:${WHEEL_TINT[tier ?? ""]}"></div><img class="wheel-pointer" src="${asset("ui/wheel/pointer")}" alt="" draggable="false"></div>
       <div class="wheel-odds">${wheelOdds(slices)}</div>
       <div class="wheel-result" aria-live="polite"></div></div></div>`)
   translateTree(el)
@@ -504,10 +520,11 @@ async function depthWheel(mode: string, tier: string | null): Promise<void> {
   const res = el.querySelector(".wheel-result")!
   if (tier) {
     sfx.pearl()
-    res.innerHTML = `<b style="color:${WHEEL_FILL[tier]}">${TIER[tier]!.name.toUpperCase()}</b> ${t("unlocked")}`
+    res.innerHTML = `${paintedTitle(TIER[tier]!.name.toUpperCase(), "wheel-res-title", WHEEL_FILL[tier])}<span>${t("10 free spins unlocked")}</span>`
   } else {
-    res.innerHTML = `<b>${t("STILL WATER")}</b> · ${t("no bonus this time — the spin plays on")}`
+    res.innerHTML = `${paintedTitle("STILL WATER", "wheel-res-title")}<span>${t("No bonus this time — the spin plays on")}</span>`
   }
+  if (!reduce) el.querySelector(".wheel-flash")!.classList.add("go")
   // Give the result a moment, then let a tap or Space continue early.
   const hold = new Promise<void>((r2) => setTimeout(r2, 1500 * speed()))
   let cont: () => void = () => {}
