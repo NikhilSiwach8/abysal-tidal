@@ -92,6 +92,12 @@ npm run build                    # dist/ (relative paths, static only)
 * Live: `?sessionID=…&rgs_url=…&lang=…&currency=…` uses `stake-engine` RGSClient.
 * Replay: `?replay=true&game=…&version=…&mode=…&event=…&rgs_url=…`; without `rgs_url` a demo book is replayed.
 * Social: `?social=true` or jurisdiction `socialCasino` swaps money wording for coin wording.
+* Background: the generated art layers in `frontend/src/assets/bg/` (unchanged copies of
+  `art/generated/background/`), stacked for parallax with a fog and particle layer.
+  Free-spin tiers grade each layer separately via body classes `tier-riptide`,
+  `tier-undertow`, `tier-maelstrom`, `tier-abyssal` (far strongest, mid medium,
+  front subtle; symbols, UI and characters are never filtered). Brightness is
+  calibrated to -0/-10/-20/-30%; CSS filters approximate a LUT.
 * QA helper (demo only): `?demoBook=<id>` forces a demo book; showcase IDs are in `public/demo/showcase.json`.
 
 ## Upload

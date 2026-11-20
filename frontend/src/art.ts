@@ -61,38 +61,7 @@ export const NOISE_URL = `url("data:image/svg+xml;utf8,${encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="3" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 .09  0 0 0 0 .1  0 0 0 0 .11  0 0 0 .55 0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>`,
 )}")`
 
-// ---------------------------------------------------------------- scene
-const kelp = (x: number, h: number, i: number) =>
-  `<path class="kelp" style="animation-delay:-${(i * 1.7).toFixed(1)}s;transform-origin:${x}px 900px" d="M${x} 900 C ${x - 18} ${900 - h * 0.3}, ${x + 22} ${900 - h * 0.55}, ${x - 6} ${900 - h * 0.8} S ${x + 10} ${900 - h}, ${x + 2} ${900 - h - 10}" fill="none" stroke="#1f2a2b" stroke-width="${6 + (i % 3) * 2}" stroke-linecap="round" opacity=".75" filter="url(#rough)"/>
-   <path class="kelp" style="animation-delay:-${(i * 1.7).toFixed(1)}s;transform-origin:${x}px 900px" d="M${x - 2} ${900 - h * 0.4} q -18 -8 -26 -26 M${x + 4} ${900 - h * 0.62} q 20 -6 26 -24" fill="none" stroke="#1f2a2b" stroke-width="3" opacity=".6"/>`
-
-const bubbles = Array.from({ length: 10 }, (_, i) => {
-  const x = 120 + ((i * 157) % 1380)
-  const r = 4 + (i % 4) * 3
-  return `<circle class="bubble" style="animation-delay:-${(i * 1.2).toFixed(1)}s" cx="${x}" cy="900" r="${r}" fill="none" stroke="#f3f5f2" stroke-width="1.6" opacity=".55"/>`
-}).join("")
-
-export const SCENE_SVG = `
-<svg class="scene-svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-  <rect width="1600" height="900" fill="url(#fog)"/>
-  <g class="rays" opacity=".55">
-    <path d="M520 0 L640 0 L420 900 L250 900 Z" fill="url(#ray)" filter="url(#blur10)"/>
-    <path d="M820 0 L880 0 L760 900 L640 900 Z" fill="url(#ray)" filter="url(#blur10)" opacity=".7"/>
-    <path d="M1080 0 L1180 0 L1240 900 L1060 900 Z" fill="url(#ray)" filter="url(#blur10)" opacity=".6"/>
-  </g>
-  <g fill="#4d5a60" opacity=".55" filter="url(#rough-big)">
-    <path d="M60 900 L90 520 L140 470 L170 360 L230 330 L260 420 L300 900 Z"/>
-    <path d="M1310 900 L1340 560 L1380 500 L1400 410 L1450 380 L1500 470 L1530 900 Z"/>
-  </g>
-  <g fill="none" stroke="#3a4549" stroke-width="7" opacity=".6" filter="url(#rough)">
-    <path d="M1180 900 L1210 420" /><path d="M1150 520 L1270 500" /><path d="M1165 610 L1255 596"/>
-    <path d="M1210 420 L1120 640 M1210 430 L1300 650" stroke-width="2.5"/>
-  </g>
-  <path d="M0 790 C 260 760, 420 820, 700 800 S 1200 760, 1600 800 L1600 900 L0 900 Z" fill="#2a3337" filter="url(#rough-big)"/>
-  ${[90, 210, 340, 1240, 1370, 1500].map((x, i) => kelp(x, 260 + (i % 3) * 70, i)).join("")}
-  <g class="bubbles">${bubbles}</g>
-  <rect y="620" width="1600" height="280" fill="url(#fgfog)"/>
-</svg>`
+// Background: generated layer art in src/assets/bg (see sceneHtml() in main.ts).
 
 // ---------------------------------------------------------------- characters
 export const HERO_SVG = `

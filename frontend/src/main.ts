@@ -5,7 +5,10 @@ import "@fontsource/outfit/latin-600.css"
 import "@fontsource/outfit/latin-800.css"
 import "./style.css"
 
-import { DEFS, HERO_SVG, LEVIATHAN_SVG, LOGO_SVG, NOISE_URL, POWER_ICONS, SCENE_SVG, UI_ICONS, icon } from "./art"
+import { DEFS, HERO_SVG, LEVIATHAN_SVG, LOGO_SVG, NOISE_URL, POWER_ICONS, UI_ICONS, icon } from "./art"
+import bgFar from "./assets/bg/bg_layer_far_fog.webp"
+import bgMid from "./assets/bg/bg_layer_mid_stacks_ship.webp"
+import bgFront from "./assets/bg/bg_layer_front_kelp.webp"
 import { SYMBOL_NAMES, SYMBOL_SPRITES, symbolSvg, type Code } from "./symbols"
 import { sfx } from "./audio"
 import { setSocial, t, translateTree } from "./text"
@@ -97,12 +100,39 @@ const fmt = (api: number) => money(api, st.currency)
 const bookToApi = (units: number) => (st.bet * units) / 100
 
 // ================================================================ DOM
+/**
+ * Background: the generated art layers, unchanged, stacked for parallax.
+ * Free-spin tiers grade each layer separately (see "tier grading" in style.css):
+ * far fog strongest, sea stacks/ship medium, foreground kelp subtle. Symbols, UI
+ * and characters sit outside .background-scene and are never graded.
+ */
+function sceneHtml(): string {
+  const bubbles = Array.from({ length: 12 }, (_, i) => {
+    const left = 4 + ((i * 37) % 92)
+    const size = 6 + (i % 4) * 4
+    return `<i class="particle bubble" style="left:${left}%;width:${size}px;height:${size}px;animation-delay:-${(i * 1.1).toFixed(1)}s"></i>`
+  }).join("")
+  const flakes = Array.from({ length: 7 }, (_, i) =>
+    `<i class="particle flake" style="left:${10 + i * 13}%;animation-delay:-${(i * 1.3).toFixed(1)}s;animation-duration:${6 + (i % 4)}s"></i>`,
+  ).join("")
+  return `
+    <div class="background-scene" aria-hidden="true">
+      <div class="bg-layer bg-far" style="background-image:url(${bgFar})"></div>
+      <div class="bg-layer bg-mid" style="background-image:url(${bgMid})"></div>
+      <div class="environment-fog"></div>
+      <div class="bg-layer bg-front" style="background-image:url(${bgFront})"></div>
+      <div class="particles">${bubbles}${flakes}</div>
+    </div>`
+}
+
+const TIER_CLASS: Record<string, string> = { B: "tier-riptide", S: "tier-undertow", U: "tier-maelstrom", H: "tier-abyssal" }
+
 function buildDom() {
   document.body.insertAdjacentHTML("afterbegin", DEFS + SYMBOL_SPRITES)
   document.documentElement.style.setProperty("--noise", NOISE_URL)
   const app = $("#app")
   app.innerHTML = `
-    <div class="scene">${SCENE_SVG}</div>
+    ${sceneHtml()}
     <div class="char hero"><div class="breathe">${HERO_SVG}</div></div>
     <div class="char leviathan"><div class="breathe">${LEVIATHAN_SVG}</div></div>
     <div class="logo">${LOGO_SVG}<span class="tag" hidden></span></div>
@@ -245,6 +275,8 @@ function setTierUi(tier: string | null, fs = 0) {
   st.tier = tier
   if (tier) document.body.dataset.tier = tier
   else delete document.body.dataset.tier
+  document.body.classList.remove(...Object.values(TIER_CLASS))
+  if (tier) document.body.classList.add(TIER_CLASS[tier]!)
   $(".boss-head .tier").textContent = tier ? TIER[tier]!.name.toUpperCase() : st.ante === "hunt" ? "LEVIATHAN HUNT" : st.ante === "deep_hunt" ? "TRENCH HUNT" : "BASE GAME"
   $(".boss-head .fs").textContent = tier ? `${t("FREE SPINS")} ${fs} / ${FREE_SPINS}` : ""
 }
