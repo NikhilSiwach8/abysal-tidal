@@ -1,0 +1,21 @@
+{
+  "name": "abyssal-tide-loops",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Seamless 5 s idle loops rendered with Remotion from the game's rigged art layers",
+  "scripts": {
+    "assets": "node scripts/copy-assets.mjs",
+    "studio": "remotion studio src/index.ts",
+    "render": "node scripts/render-all.mjs"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.540",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.540"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.8",
+    "typescript": "5.8.3"
+  }
+}

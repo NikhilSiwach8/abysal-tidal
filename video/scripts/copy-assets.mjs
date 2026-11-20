@@ -1,0 +1,16 @@
+// Copy the game's art layers into public/ so compositions load them with staticFile().
+import { cpSync, mkdirSync, readdirSync } from "node:fs"
+const A = "../frontend/src/assets"
+const pick = [
+  ["chars/hero_body.webp", "hero_body.webp"], ["chars/hero_scarf.webp", "hero_scarf.webp"],
+  ["chars/hero_coat.webp", "hero_coat.webp"], ["chars/hero_eyes.webp", "hero_eyes.webp"],
+  ["chars/lev_body.webp", "lev_body.webp"], ["chars/lev_head.webp", "lev_head.webp"], ["chars/lev_gills.webp", "lev_gills.webp"],
+  ["bg/bg_layer_far_fog.webp", "bg_far.webp"], ["bg/bg_layer_mid_stacks_ship.webp", "bg_mid.webp"],
+  ["bg/bg_layer_front_kelp.webp", "bg_front.webp"],
+]
+mkdirSync("public/fx", { recursive: true })
+for (const [src, dst] of pick) cpSync(`${A}/${src}`, `public/${dst}`)
+// full-resolution logo (the game copy is downscaled)
+cpSync("../art/generated/lettering/logo_abyssal_tide.png", "public/logo_full.png")
+for (const f of readdirSync(`${A}/fx`)) if (/^(bubble|flake)_/.test(f)) cpSync(`${A}/fx/${f}`, `public/fx/${f}`)
+console.log("assets copied")
