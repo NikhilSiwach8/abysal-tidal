@@ -63,24 +63,26 @@ button:disabled { cursor: not-allowed; opacity: .45; filter: grayscale(.5); }
    medium, front subtle); reels, UI and characters are outside .background-scene.
    The art is ~90% greyscale and hue-rotate() alone leaves grey untouched, so a
    sepia() step first gives the greys a hue for hue-rotate() to swing to the target
-   cast (the same technique as the Abyssal reference preset). CSS filters only
+   cast (the same technique as the Abyssal reference preset). The foreground
+   kelp has its own green tint, so it is desaturated first in those tiers; otherwise
+   hue-rotate() swings that green to magenta/violet/red instead of the cast. CSS filters only
    approximate a LUT; for exact colour matching use per-tier LUTs/shaders. */
 .tier-riptide .bg-far   { filter: sepia(14%) saturate(115%) brightness(0.97); }
-.tier-riptide .bg-mid   { filter: sepia(10%) saturate(115%) brightness(0.987); }
-.tier-riptide .bg-front { filter: sepia(6%) saturate(115%) brightness(0.977); }
+.tier-riptide .bg-mid   { filter: sepia(10%) saturate(115%) brightness(0.979); }
+.tier-riptide .bg-front { filter: sepia(6%) saturate(115%) brightness(0.999); }
 
-.tier-undertow .bg-far   { filter: sepia(40%) hue-rotate(175deg) saturate(120%) brightness(0.8) contrast(1.08); }
-.tier-undertow .bg-mid   { filter: sepia(28%) hue-rotate(175deg) saturate(110%) brightness(0.896) contrast(1.08); }
-.tier-undertow .bg-front { filter: sepia(14%) hue-rotate(175deg) saturate(100%) brightness(0.91) contrast(1.08); }
+.tier-undertow .bg-far   { filter: sepia(40%) hue-rotate(175deg) saturate(120%) brightness(0.815) contrast(1.08); }
+.tier-undertow .bg-mid   { filter: sepia(28%) hue-rotate(175deg) saturate(110%) brightness(0.862) contrast(1.08); }
+.tier-undertow .bg-front { filter: grayscale(100%) sepia(14%) hue-rotate(175deg) saturate(100%) brightness(0.941) contrast(1.08); }
 
-.tier-maelstrom .bg-far   { filter: sepia(48%) hue-rotate(125deg) saturate(135%) brightness(0.734); }
-.tier-maelstrom .bg-mid   { filter: sepia(34%) hue-rotate(125deg) saturate(120%) brightness(0.745); }
-.tier-maelstrom .bg-front { filter: sepia(18%) hue-rotate(125deg) saturate(110%) brightness(0.737); }
+.tier-maelstrom .bg-far   { filter: sepia(48%) hue-rotate(125deg) saturate(135%) brightness(0.736); }
+.tier-maelstrom .bg-mid   { filter: sepia(34%) hue-rotate(125deg) saturate(120%) brightness(0.748); }
+.tier-maelstrom .bg-front { filter: grayscale(100%) sepia(18%) hue-rotate(125deg) saturate(110%) brightness(0.768); }
 .tier-maelstrom .environment-fog { opacity: .75; }
 
-.tier-abyssal .bg-far   { filter: sepia(50%) hue-rotate(225deg) saturate(150%) brightness(0.615); }
-.tier-abyssal .bg-mid   { filter: sepia(36%) hue-rotate(225deg) saturate(130%) brightness(0.648); }
-.tier-abyssal .bg-front { filter: sepia(18%) hue-rotate(225deg) saturate(115%) brightness(0.62); }
+.tier-abyssal .bg-far   { filter: sepia(50%) hue-rotate(225deg) saturate(150%) brightness(0.619); }
+.tier-abyssal .bg-mid   { filter: sepia(36%) hue-rotate(225deg) saturate(130%) brightness(0.638); }
+.tier-abyssal .bg-front { filter: grayscale(100%) sepia(18%) hue-rotate(225deg) saturate(115%) brightness(0.664); }
 .tier-abyssal .particle { filter: drop-shadow(0 0 6px #a26ff0) drop-shadow(0 0 12px #a26ff0); }
 .tier-abyssal .bubble { border-color: rgba(226, 210, 255, .9); }
 
