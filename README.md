@@ -100,6 +100,20 @@ npm run build                    # dist/ (relative paths, static only)
   calibrated to -0/-10/-20/-30%; CSS filters approximate a LUT.
 * QA helper (demo only): `?demoBook=<id>` forces a demo book; showcase IDs are in `public/demo/showcase.json`.
 
+## Art
+
+Generated art lives in `art/generated/` (sources and cleaned PNGs). The game uses
+right-sized WebP copies in `frontend/src/assets/`, produced by:
+
+```bash
+python3 tools/prepare_game_assets.py
+```
+
+Re-run it after replacing any art. Symbols sit on the parchment multiplier-spot tile
+(tinted by spot level); specials are full panels; the Leviathan mega symbol is sliced
+per cell. Painted overlay titles are used except in social-casino sessions, which show
+translated text because several titles contain restricted words ("WIN").
+
 ## Upload
 
 * Math: `math-sdk/games/abyssal_tide/library/publish_files/*`

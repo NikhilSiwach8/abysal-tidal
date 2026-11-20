@@ -5,16 +5,17 @@ import "@fontsource/outfit/latin-600.css"
 import "@fontsource/outfit/latin-800.css"
 import "./style.css"
 
-import { DEFS, LEVIATHAN_SVG, LOGO_SVG, NOISE_URL, POWER_ICONS, UI_ICONS, icon } from "./art"
+import { NOISE_URL, UI_ICONS, icon } from "./art"
+import { asset, assetsMatching, preload, titleImage } from "./assets"
 import bgFar from "./assets/bg/bg_layer_far_fog.webp"
 import bgMid from "./assets/bg/bg_layer_mid_stacks_ship.webp"
 import bgFront from "./assets/bg/bg_layer_front_kelp.webp"
 import bgPortrait from "./assets/bg/bg_portrait.webp"
 import heroIdle from "./assets/chars/hero_idle.webp"
 import heroVictory from "./assets/chars/hero_victory.webp"
-import { SYMBOL_NAMES, SYMBOL_SPRITES, symbolSvg, type Code } from "./symbols"
+import { CODES, SYMBOL_NAMES, symbolSvg, symbolUrl, type Code } from "./symbols"
 import { sfx } from "./audio"
-import { setSocial, t, translateTree } from "./text"
+import { isSocial, setSocial, t, translateTree } from "./text"
 import {
   API, MODE_COST, ReplayNotFound, createProvider, fetchReplay, isReplay, money,
   type BookEvent, type PlayedRound, type Provider,
@@ -89,6 +90,7 @@ const st = {
   shownWin: 0, // book units (x100 of bet) for the current round
   spinBase: 0,
   pendingLine: "",
+  lastBursts: [] as { reel: number; row: number }[],
   modal: false,
 }
 const speed = () => (st.slam ? 0.15 : st.turbo ? 0.45 : 1)
@@ -110,13 +112,15 @@ const bookToApi = (units: number) => (st.bet * units) / 100
  * and characters sit outside .background-scene and are never graded.
  */
 function sceneHtml(): string {
-  const bubbles = Array.from({ length: 12 }, (_, i) => {
+  const bubbleArt = assetsMatching("fx/bubble_")
+  const flakeArt = assetsMatching("fx/flake_")
+  const bubbles = Array.from({ length: 10 }, (_, i) => {
     const left = 4 + ((i * 37) % 92)
-    const size = 6 + (i % 4) * 4
-    return `<i class="particle bubble" style="left:${left}%;width:${size}px;height:${size}px;animation-delay:-${(i * 1.1).toFixed(1)}s"></i>`
+    const size = 10 + (i % 4) * 7
+    return `<img class="particle bubble" src="${bubbleArt[i % bubbleArt.length]}" alt="" style="left:${left}%;width:${size}px;animation-delay:-${(i * 1.2).toFixed(1)}s">`
   }).join("")
   const flakes = Array.from({ length: 7 }, (_, i) =>
-    `<i class="particle flake" style="left:${10 + i * 13}%;animation-delay:-${(i * 1.3).toFixed(1)}s;animation-duration:${6 + (i % 4)}s"></i>`,
+    `<img class="particle flake" src="${flakeArt[i % flakeArt.length]}" alt="" style="left:${12 + i * 13}%;width:${20 + (i % 3) * 7}px;animation-delay:-${(i * 1.3).toFixed(1)}s;animation-duration:${6 + (i % 4)}s">`,
   ).join("")
   return `
     <div class="background-scene" aria-hidden="true">
@@ -132,7 +136,6 @@ function sceneHtml(): string {
 const TIER_CLASS: Record<string, string> = { B: "tier-riptide", S: "tier-undertow", U: "tier-maelstrom", H: "tier-abyssal" }
 
 function buildDom() {
-  document.body.insertAdjacentHTML("afterbegin", DEFS + SYMBOL_SPRITES)
   document.documentElement.style.setProperty("--noise", NOISE_URL)
   const app = $("#app")
   app.innerHTML = `
@@ -141,41 +144,42 @@ function buildDom() {
       <img class="hero-pose idle" src="${heroIdle}" alt="" draggable="false">
       <img class="hero-pose victory" src="${heroVictory}" alt="" draggable="false">
     </div></div>
-    <div class="char leviathan"><div class="breathe">${LEVIATHAN_SVG}</div></div>
-    <div class="logo">${LOGO_SVG}<span class="tag" hidden></span></div>
+    <div class="char leviathan"><div class="breathe"><img class="lev-img" src="${asset("chars/leviathan_idle")}" alt="" draggable="false"></div></div>
+    <div class="logo"><img class="logo-img" src="${asset("lettering/logo")}" alt="Abyssal Tide" draggable="false"><span class="tag" hidden></span></div>
     <main class="stage">
       <section class="boss" aria-label="Leviathan health">
         <div class="boss-head"><span class="tier">BASE GAME</span><span class="tab">LEVIATHAN HP</span><span class="fs"></span></div>
-        <div class="hp"><div class="hp-fill"></div><div class="hp-ticks"></div><div class="hp-text">${BOSS_HP} / ${BOSS_HP}</div></div>
+        <div class="hp"><div class="hp-fill" style="background-image:url(${asset("ui/hp_fill")})"></div><div class="hp-ticks"></div><img class="hp-frame" src="${asset("ui/hp_frame")}" alt="" draggable="false"><div class="hp-text">${BOSS_HP} / ${BOSS_HP}</div></div>
         <div class="track"><span class="cap"></span>${LADDER.map(
-          (k, i) => `<span class="node${i === 7 ? " final" : ""}" style="left:${(i + 1) * 12.5}%" title="${POWER_NAMES[k]} at ${(i + 1) * STEP}">${icon(POWER_ICONS[i]!)}</span>`,
+          (k, i) => `<span class="node${i === 7 ? " final" : ""}" style="left:${(i + 1) * 12.5}%" title="${POWER_NAMES[k]} at ${(i + 1) * STEP}"><img src="${asset(`ui/pu/${i + 1}_${k}`)}" alt="" draggable="false"></span>`,
         ).join("")}</div>
       </section>
-      <section class="grid" aria-label="Game board">
+      <section class="grid" aria-label="Game board" style="--tile-mask:url(${asset("sym/tile")})">
         <div class="grid-bg"></div>
         <div class="layer spots"></div>
         <div class="layer symbols"></div>
         <div class="layer labels"></div>
-        <div class="grid-frame"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><rect x="1" y="1" width="98" height="98" rx="2" fill="none" stroke="#171b1d" stroke-width="2.4" vector-effect="non-scaling-stroke" filter="url(#rough-big)"/></svg></div>
+        <img class="grid-frame" src="${asset("ui/grid_frame")}" alt="" draggable="false">
       </section>
       <div class="banner" aria-live="polite"></div>
       <div class="ante" hidden></div>
     </main>
-    <nav class="bar">
-      <button class="buy-badge" data-act="buy">${t("BUY FEATURE")}</button>
+    <nav class="bar" style="--bar-art:url(${asset("ui/control_bar")})">
+      <button class="buy-badge" data-act="buy" style="background-image:url(${asset("ui/buy_badge")})"><span>${t("BUY FEATURE")}</span></button>
       <button class="menu-btn" data-act="info" aria-label="Game info">${icon(UI_ICONS.menu)}</button>
       <div class="read bal"><span class="k">${t("BALANCE")}</span><span class="v">–</span></div>
       <div class="read winr"><span class="k">${t("WIN")}</span><span class="v">–</span></div>
       <div class="read betr"><span class="k">${t("BET")}</span><span class="v">–</span><span class="x" hidden></span></div>
       <div class="pm"><button class="round" data-act="plus" aria-label="Increase bet">${icon(UI_ICONS.plus)}</button><button class="round" data-act="minus" aria-label="Decrease bet">${icon(UI_ICONS.minus)}</button></div>
-      <button class="spin-btn" data-act="spin" aria-label="Spin">${icon(UI_ICONS.spin)}</button>
+      <button class="spin-btn" data-act="spin" aria-label="Spin"><img src="${asset("ui/spin")}" alt="" draggable="false"></button>
       <div class="stack"><button class="round" data-act="auto" aria-label="Autoplay">${icon(UI_ICONS.auto)}<span class="left" hidden></span></button><button class="round" data-act="turbo" aria-label="Turbo">${icon(UI_ICONS.turbo)}</button></div>
     </nav>`
   const spots = $(".spots")
   const labels = $(".labels")
+  const tileUrl = asset("sym/tile")
   for (let r = 0; r < N; r++)
     for (let c = 0; c < N; c++) {
-      spots.append(h(`<div class="spot" data-r="${r}" data-c="${c}" style="left:${(r * 100) / N}%;top:${(c * 100) / N}%"><i></i></div>`))
+      spots.append(h(`<div class="spot" data-r="${r}" data-c="${c}" style="left:${(r * 100) / N}%;top:${(c * 100) / N}%"><i style="background-image:url(${tileUrl})"></i></div>`))
       labels.append(h(`<div class="lab" data-r="${r}" data-c="${c}" style="left:${(r * 100) / N}%;top:${(c * 100) / N}%"></div>`))
     }
 }
@@ -225,6 +229,22 @@ function resetSpots(start = 1) {
   setSpots(Array.from({ length: N }, () => Array(N).fill(start)), false)
 }
 
+// ================================================================ effects
+/** One-shot effect sprite centred on a grid cell; `scale` is in cells. Removes itself. */
+function fx(key: string, cls: string, at: { reel: number; row: number }, scale: number) {
+  const el = h(`<img class="fx ${cls}" src="${asset(key)}" alt="" style="left:${((at.reel + 0.5) * 100) / N}%;top:${((at.row + 0.5) * 100) / N}%;width:calc(var(--cell) * ${scale.toFixed(2)})">`)
+  $(".grid").append(el)
+  setTimeout(() => el.remove(), 900 * speed())
+}
+
+/** Water slash across the Leviathan when it takes damage. */
+function slashLeviathan() {
+  const lev = $(".leviathan")
+  const el = h(`<img class="fx fx-slash" src="${asset("fx/water_slash")}" alt="">`)
+  lev.append(el)
+  setTimeout(() => el.remove(), 600 * speed())
+}
+
 // ================================================================ HUD helpers
 function banner(text: string) {
   const b = $(".banner")
@@ -272,6 +292,7 @@ function setDamage(d: number, hit = false) {
     void hp.offsetWidth
     hp.classList.add("shake")
     const lev = $(".leviathan")
+    if (left > 0) slashLeviathan()
     lev.classList.remove("recoil")
     void lev.offsetWidth
     lev.classList.add("recoil")
@@ -318,7 +339,7 @@ function syncButtons() {
 // ================================================================ overlays
 function overlay(html: string, ms: number): Promise<void> {
   return new Promise((resolve) => {
-    const el = h(`<div class="overlay" role="dialog"><div class="card">${html}<div class="hint">${t("Tap to continue")}</div></div></div>`)
+    const el = h(`<div class="overlay" role="dialog"><img class="ov-backdrop" src="${asset("fx/overlay_backdrop")}" alt=""><div class="card">${html}<div class="hint">${t("Tap to continue")}</div></div></div>`)
     translateTree(el)
     document.body.append(el)
     let done = false
@@ -341,6 +362,15 @@ function overlay(html: string, ms: number): Promise<void> {
   })
 }
 
+/**
+ * Overlay heading: the painted title when one exists. Social-casino sessions use the
+ * translated text instead, because several titles contain restricted words ("WIN").
+ */
+function heading(text: string): string {
+  const img = isSocial() ? null : titleImage(text)
+  return img ? `<h1 class="title-img"><img src="${img}" alt="${text}" draggable="false"></h1>` : `<h1>${t(text)}</h1>`
+}
+
 /** Hero switches to the victory pose for big-win and feature-end celebrations. */
 function setHeroCelebrating(on: boolean) {
   document.querySelector(".hero")?.classList.toggle("celebrating", on)
@@ -357,7 +387,7 @@ async function countUpOverlay(title: string, units: number, ms: number) {
 
 async function countUpOverlayInner(title: string, units: number, ms: number) {
   const amountId = `amt-${Math.random().toString(36).slice(2)}`
-  const p = overlay(`<h1>${t(title)}</h1><div class="amount" id="${amountId}">${fmt(0)}</div>`, ms)
+  const p = overlay(`${heading(title)}<div class="amount" id="${amountId}">${fmt(0)}</div>`, ms)
   sfx.bigWin()
   const start = performance.now()
   const dur = Math.min(ms * 0.6, 2200) * speed()
@@ -415,6 +445,8 @@ async function evWinInfo(e: BookEvent) {
     const pop = h(`<div class="win-pop" style="left:${((o.reel + 0.5) * 100) / N}%;top:${((o.row + 0.5) * 100) / N}%">${fmt(bookToApi(w.win))}</div>`)
     $(".grid").append(pop)
     setTimeout(() => pop.remove(), 950 * speed())
+    fx("fx/glow_ring", "fx-glow", o, Math.min(4, 1.2 + w.positions.length / 6))
+    st.lastBursts.push(o)
   }
   const top = [...wins].sort((a, b) => b.win - a.win)[0]!
   const mult = top.meta.clusterMult > 1 ? ` ×${top.meta.clusterMult}` : ""
@@ -449,7 +481,7 @@ async function evFeature(e: BookEvent) {
     const c0 = Math.min(...positions.map((p) => p.row))
     st.mega = { r0, c0, n: info.size as number }
     setDamage(BOSS_HP)
-    await overlay(`<h1>THE LEVIATHAN RISES</h1><p>A ${info.size}×${info.size} Leviathan surfaces</p>`, 1800)
+    await overlay(`${heading("THE LEVIATHAN RISES")}<p>A ${info.size}×${info.size} Leviathan surfaces</p>`, 1800)
   }
   for (const p of positions) cells[p.reel]![p.row]?.classList.add("affect")
   await sleep(700)
@@ -479,6 +511,7 @@ async function evTumble(e: BookEvent) {
     }
   }
   sfx.pop()
+  for (const o of st.lastBursts.splice(0)) fx("fx/ink_splash", "fx-ink", o, 2.2)
   await sleep(380)
   const gone = new Set(exploding.map((p) => `${p.reel},${p.row}`))
   for (let r = 0; r < N; r++) {
@@ -549,7 +582,7 @@ async function playEvents(events: BookEvent[], opts: { mode: string }) {
         setDamage(0)
         sfx.pearl()
         await overlay(
-          `<h1>${TIER[tier]!.name.toUpperCase()}</h1><p>${FREE_SPINS} FREE SPINS · every spot starts at ${TIER[tier]!.start}×</p>`,
+          `${heading(TIER[tier]!.name.toUpperCase())}<p>${FREE_SPINS} FREE SPINS · every spot starts at ${TIER[tier]!.start}×</p>`,
           3000,
         )
         break
@@ -566,7 +599,7 @@ async function playEvents(events: BookEvent[], opts: { mode: string }) {
       }
       case "wincap":
         setHeroCelebrating(true)
-        await overlay(`<h1>MAX WIN</h1><div class="amount">${fmt(bookToApi(WINCAP * 100))}</div><p>${WINCAP.toLocaleString("en-US")}× reached!</p>`, 4000)
+        await overlay(`${heading("MAX WIN")}<div class="amount">${fmt(bookToApi(WINCAP * 100))}</div><p>${WINCAP.toLocaleString("en-US")}× reached!</p>`, 4000)
         setHeroCelebrating(false)
         break
       case "finalWin":
@@ -710,7 +743,7 @@ function buyCard(id: string, title: string, desc: string, illus: string, row2 = 
   const isHunt = id === "hunt" || id === "deep_hunt"
   const active = st.ante === id
   const cost = MODE_COST[id]!
-  return `<article class="bcard${row2 ? " r2" : ""}${ABYSS.has(id) ? " has-abyss" : ""}" data-mode="${id}">
+  return `<article style="background-image:url(${asset("ui/card")})" class="bcard${row2 ? " r2" : ""}${ABYSS.has(id) ? " has-abyss" : ""}" data-mode="${id}">
     ${ABYSS.has(id) ? `<div class="abyss-badge">CHANCE OF ABYSSAL BONUS</div>` : ""}
     <h4>${t(title)}</h4>
     <div class="illus">${illus}</div>
@@ -723,18 +756,18 @@ function buyCard(id: string, title: string, desc: string, illus: string, row2 = 
 
 function openBuy() {
   if (st.busy || st.jur.disabledBuyFeature) return
-  const compass = (c: Code, cls = "") => `<span class="t ${cls}">${symbolSvg(c)}</span>`
-  const mini = (n: number) => `${compass("S")}<span class="mini">${Array.from({ length: 36 }, () => `<i>${n}×</i>`).join("")}</span>${compass("S")}`
+  const art = (key: string, extra = "") => `<img class="illus-img" src="${asset(`ui/${key}`)}" alt="" draggable="false">${extra}`
+  const fsArt = (n: number) => art("illus_freespins", `<span class="illus-mult">${n}×</span>`)
   const render = () => `
     <h2>${t("Buy Feature")}</h2>
     <div class="buy-grid">
-      ${buyCard("hunt", "Leviathan Hunt", "Every bonus 10× as likely, every spin", `${compass("S", "fan")}${compass("S", "fan")}${compass("S", "fan")}`)}
-      ${buyCard("deep_hunt", "Trench Hunt", "Maelstrom & Abyssal 150× as likely", `${compass("S", "fan")}${compass("S2", "fan")}${compass("S", "fan")}`)}
-      ${buyCard("mystery", "Mystery Depths", "A hidden bonus — or nothing at all", `<span class="q">?</span><span class="pct">10%</span>`)}
-      ${buyCard("mystery_deep", "Abyssal Mystery", "Undertow or Abyssal — or nothing", `<span class="q">?</span><span class="pct">10%</span>`)}
-      ${buyCard("bonus", "Riptide", "10 free spins, spots start at 1×", mini(1), true)}
-      ${buyCard("super", "Undertow", "10 free spins, spots start at 2×", mini(2))}
-      ${buyCard("ultra", "Maelstrom", "10 free spins, spots start at 4×", mini(4))}
+      ${buyCard("hunt", "Leviathan Hunt", "Every bonus 10× as likely, every spin", art("illus_hunt"))}
+      ${buyCard("deep_hunt", "Trench Hunt", "Maelstrom & Abyssal 150× as likely", art("illus_trench"))}
+      ${buyCard("mystery", "Mystery Depths", "A hidden bonus — or nothing at all", art("illus_mystery", `<span class="pct">10%</span>`))}
+      ${buyCard("mystery_deep", "Abyssal Mystery", "Undertow or Abyssal — or nothing", art("illus_mystery", `<span class="pct">10%</span>`))}
+      ${buyCard("bonus", "Riptide", "10 free spins, spots start at 1×", fsArt(1), true)}
+      ${buyCard("super", "Undertow", "10 free spins, spots start at 2×", fsArt(2))}
+      ${buyCard("ultra", "Maelstrom", "10 free spins, spots start at 4×", fsArt(4))}
     </div>
     <div class="bet-panel"><span>${t("BET")}</span><button class="sq" data-bm>${icon(UI_ICONS.minus)}</button><span class="amt">${fmt(st.bet)}</span><button class="sq" data-bp>${icon(UI_ICONS.plus)}</button><span>${t("BALANCE")}: ${fmt(st.balance)}</span></div>`
   const m = modal(render())
@@ -773,7 +806,7 @@ function openBuy() {
 function payRow(code: Code) {
   const p = PAYTABLE[code]!
   const tiers = ["5–7", "8–10", "11–13", "14+"]
-  return `<div class="pay"><span class="sv">${symbolSvg(code)}</span><div><div class="nm">${SYMBOL_NAMES[code]}</div><table>${tiers
+  return `<div class="pay"><span class="sv">${symbolSvg(code, undefined, true)}</span><div><div class="nm">${SYMBOL_NAMES[code]}</div><table>${tiers
     .map((k, i) => `<tr><td>${k}</td><td>${p[i]}×</td></tr>`).join("")}</table></div></div>`
 }
 
@@ -790,7 +823,7 @@ function openInfo() {
     <div class="pay-grid">${(["H5", "H4", "H3", "H2", "H1", "L5", "L4", "L3", "L2", "L1"] as Code[]).map(payRow).join("")}</div>
 
     <h3>Whirlpool Wild</h3>
-    <div class="pay"><span class="sv">${symbolSvg("W")}</span><p>${t("Substitutes for every paying symbol. After a winning cluster that contains a Wild has paid, every multiplier spot under that cluster doubles, up to 64×.")}</p></div>
+    <div class="pay"><span class="sv">${symbolSvg("W", undefined, true)}</span><p>${t("Substitutes for every paying symbol. After a winning cluster that contains a Wild has paid, every multiplier spot under that cluster doubles, up to 64×.")}</p></div>
 
     <h3>Multiplier spots</h3>
     <p>${t("Every cell has a spot. In the base game all spots start at 1× and reset every spin. A cluster's multiplier is the sum of the spots above 1× that it covers; if every covered spot is 1×, the multiplier is 1×. In free spins, spots start at the feature's level and carry over between spins.")}</p>
@@ -808,11 +841,11 @@ function openInfo() {
       <li><b>200 Leviathan Rises</b> — the Leviathan is slain and a Leviathan block from 3×3 to 6×6 lands</li>
     </ul>
     <p>${t("Damage resets every base spin. In free spins it carries across all 10 spins.")}</p>
-    <div class="pay"><span class="sv">${symbolSvg("H6")}</span><p>${t("Leviathan mega symbol pays by the cells it covers: 5–15 → 100×, 16–24 → 1,000×, 25–35 → 10,000×, 36 → 100,000×. A 3×3 pays 100×, 4×4 1,000×, 5×5 10,000×, 6×6 100,000×. Spot multipliers do not apply to it.")}</p></div>
+    <div class="pay"><span class="sv">${symbolSvg("H6", undefined, true)}</span><p>${t("Leviathan mega symbol pays by the cells it covers: 5–15 → 100×, 16–24 → 1,000×, 25–35 → 10,000×, 36 → 100,000×. A 3×3 pays 100×, 4×4 1,000×, 5×5 10,000×, 6×6 100,000×. Spot multipliers do not apply to it.")}</p></div>
 
     <h3>Sunken Compass &amp; free spins</h3>
-    <div class="pay"><span class="sv">${symbolSvg("S")}</span><p>${t("Scatter. 3 Compasses award Riptide, 4 award Undertow, 5 award Maelstrom. Every feature is 10 free spins with no retriggers.")}</p></div>
-    <div class="pay"><span class="sv">${symbolSvg("S2")}</span><p>${t("Abyssal Compass: on a 5-Compass trigger one Compass can upgrade to the Abyssal Compass (4 + Abyssal), awarding the Abyssal feature.")}</p></div>
+    <div class="pay"><span class="sv">${symbolSvg("S", undefined, true)}</span><p>${t("Scatter. 3 Compasses award Riptide, 4 award Undertow, 5 award Maelstrom. Every feature is 10 free spins with no retriggers.")}</p></div>
+    <div class="pay"><span class="sv">${symbolSvg("S2", undefined, true)}</span><p>${t("Abyssal Compass: on a 5-Compass trigger one Compass can upgrade to the Abyssal Compass (4 + Abyssal), awarding the Abyssal feature.")}</p></div>
     <table class="modes"><tr><th>Trigger</th><th>Feature</th><th>Spots start at</th></tr>
       <tr><td>3 Compasses</td><td>Riptide</td><td>1×</td></tr><tr><td>4 Compasses</td><td>Undertow</td><td>2×</td></tr>
       <tr><td>5 Compasses</td><td>Maelstrom</td><td>4×</td></tr><tr><td>4 + Abyssal Compass</td><td>Abyssal</td><td>8×</td></tr></table>
@@ -858,7 +891,7 @@ function changeBet(d: number) {
 // ================================================================ boot
 /** (Re)apply translatable labels — social mode can switch on after authenticate. */
 function relabel() {
-  $(".buy-badge").textContent = t("BUY FEATURE")
+  $(".buy-badge span").textContent = t("BUY FEATURE")
   $(".bal .k").textContent = t("BALANCE")
   $(".winr .k").textContent = t("WIN")
   $(".betr .k").textContent = t("BET")
@@ -935,6 +968,7 @@ async function bootReplay() {
 }
 
 async function boot() {
+  preload([...CODES.map(symbolUrl), asset("fx/overlay_backdrop"), asset("fx/ink_splash"), asset("fx/glow_ring"), asset("fx/water_slash"), ...assetsMatching("lettering/title_")])
   if (params.get("social") === "true") setSocial(true)
   buildDom()
   initialBoard()
