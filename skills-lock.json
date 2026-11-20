@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "skills": {
+    "animation-designer": {
+      "source": "daffy0208/ai-dev-standards",
+      "commit": "32c3241e48f9fe2c3de611ad9168503ea41f28fd",
+      "sourceType": "github",
+      "skillPath": "skills/animation-designer/SKILL.md",
+      "computedHash": "a432efa3fe1d5c7c9136f5f0894750023f2600d8b7a19be1ec0a424f7d4c8f54"
+    }
+  }
+}
