@@ -1,0 +1,60 @@
+{
+ "base": {
+  "loss": 1,
+  "tier_H": 2,
+  "tier_S": 13,
+  "tier_B": 22,
+  "leviathan": 34,
+  "tier_U": 47,
+  "maxwin": 1020
+ },
+ "hunt": {
+  "loss": 1,
+  "tier_H": 2,
+  "tier_B": 12,
+  "tier_U": 13,
+  "tier_S": 24,
+  "leviathan": 34,
+  "maxwin": 1020
+ },
+ "deep_hunt": {
+  "tier_U": 0,
+  "loss": 1,
+  "tier_H": 2,
+  "tier_B": 14,
+  "leviathan": 34,
+  "tier_S": 56,
+  "maxwin": 1020
+ },
+ "bonus": {
+  "tier_B": 0,
+  "leviathan": 17,
+  "maxwin": 1020
+ },
+ "super": {
+  "tier_S": 0,
+  "leviathan": 46,
+  "maxwin": 741
+ },
+ "ultra": {
+  "tier_U": 0,
+  "tier_H": 2,
+  "leviathan": 6,
+  "maxwin": 1020
+ },
+ "mystery": {
+  "tier_S": 0,
+  "loss": 1,
+  "tier_H": 2,
+  "tier_U": 12,
+  "leviathan": 46,
+  "maxwin": 1020
+ },
+ "mystery_deep": {
+  "tier_S": 0,
+  "loss": 1,
+  "tier_H": 2,
+  "leviathan": 34,
+  "maxwin": 1020
+ }
+}
