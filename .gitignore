@@ -11,3 +11,4 @@ __pycache__/
 !.claude/skills/stake-web-sdk/
 !.claude/skills/remotion-motion-graphics/
 release/
+!.claude/skills/reverse-engineer-anything/
