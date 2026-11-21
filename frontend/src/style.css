@@ -555,3 +555,17 @@ table.modes th { font-family: var(--f-lil); font-weight: 400; }
 .wheel.hub-video-on .wheel-svg .wheel-hub { visibility: hidden; }
 .wheel.glow-video-on .wheel-glow { visibility: hidden; }
 .landed .wheel-glow-video { filter: brightness(1.3); }
+
+/* Depth Wheel spin button: the wheel waits until the player spins it */
+.wheel-spin { position: relative; display: grid; place-items: center; width: clamp(84px, 11vh, 120px); aspect-ratio: 1; margin-top: -4px; padding: 0; border: 0; background: none; cursor: pointer; filter: drop-shadow(0 4px 0 #000); transition: transform .15s, opacity .25s; }
+.wheel-spin img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.wheel-spin span { position: relative; margin-top: 64%; font-family: var(--f-mark); font-size: clamp(15px, 2vh, 20px); letter-spacing: .08em; color: var(--text); text-shadow: 0 2px 0 var(--ink), 0 0 8px var(--ink); }
+.wheel-spin:hover { transform: scale(1.06); }
+.wheel-spin:active { transform: scale(.94); }
+.wheel-spin:focus-visible { outline: 3px solid var(--teal-hi); outline-offset: 4px; border-radius: 50%; }
+.armed .wheel-spin { animation: wheelspinpulse 1.4s ease-in-out infinite; }
+@keyframes wheelspinpulse { 50% { filter: drop-shadow(0 4px 0 #000) drop-shadow(0 0 16px var(--teal-hi)); } }
+.wheel-spin.gone { display: none; }
+.armed .wheel-hub-video, .armed .wheel-svg .wheel-hub { cursor: pointer; pointer-events: auto; }
+.wheel-result:empty { display: none; }
+@media (prefers-reduced-motion: reduce) { .armed .wheel-spin { animation: none; } }

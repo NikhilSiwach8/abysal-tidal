@@ -465,6 +465,37 @@ function wheelOdds(slices: [string, number][]): string {
  * book (its selectedMode event, or no bonus). Slam-stop and Space skip to the stop,
  * and players with reduced motion get the result without the spin.
  */
+/**
+ * The wheel waits for the player: the SPIN button, a tap on the hub, or Space / Enter.
+ * The key press is stopped here so the game's own Space handler does not read it as a
+ * slam-stop of the round that is about to play.
+ */
+function waitForWheelSpin(el: HTMLElement): Promise<void> {
+  const btn = el.querySelector<HTMLButtonElement>(".wheel-spin")!
+  el.classList.add("armed")
+  btn.focus({ preventScroll: true })
+  return new Promise((resolve) => {
+    const go = () => {
+      removeEventListener("keydown", onKey, true)
+      el.classList.remove("armed")
+      btn.disabled = true
+      btn.classList.add("gone")
+      resolve()
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== "Space" && e.code !== "Enter" && e.code !== "NumpadEnter") return
+      e.preventDefault()
+      e.stopImmediatePropagation()
+      if (!e.repeat) go()
+    }
+    addEventListener("keydown", onKey, true)
+    btn.addEventListener("click", go, { once: true })
+    el.querySelector(".wheel")!.addEventListener("click", (e) => {
+      if ((e.target as Element).closest(".wheel-hub-video, .wheel-hub")) go()
+    })
+  })
+}
+
 async function depthWheel(mode: string, tier: string | null): Promise<void> {
   const slices = WHEEL[mode]
   if (!slices) return
@@ -490,16 +521,18 @@ async function depthWheel(mode: string, tier: string | null): Promise<void> {
     <div class="wheel-card">${paintedTitle("THE DEPTH WHEEL", "wheel-title")}<p class="wheel-sub">${name}</p>
       <div class="wheel"><img class="wheel-glow" src="${asset("ui/wheel/glow")}" alt="">${wheelSvg(slices)}<div class="wheel-flash" style="--tint:${WHEEL_TINT[tier ?? ""]}"></div><img class="wheel-pointer" src="${asset("ui/wheel/pointer")}" alt="" draggable="false"></div>
       <div class="wheel-odds">${wheelOdds(slices)}</div>
-      <div class="wheel-result" aria-live="polite"></div></div></div>`)
+      <div class="wheel-result" aria-live="polite"></div>
+      <button class="wheel-spin" type="button" aria-label="${t("Spin the wheel")}"><img src="${asset("ui/spin")}" alt="" draggable="false"><span>${t("SPIN")}</span></button></div></div>`)
   translateTree(el)
   document.body.append(el)
   attachWheelLoops(el.querySelector<HTMLElement>(".wheel")!)
   const rot = el.querySelector<SVGGElement>(".wheel-rot")!
+  await waitForWheelSpin(el)
   const ms = reduce ? 0 : WHEEL_SPIN_MS * speed()
   let skip: () => void = () => {}
   const skipped = new Promise<void>((res) => (skip = res))
   const onKey = (e: KeyboardEvent) => {
-    if (e.code === "Space") { e.preventDefault(); skip() }
+    if (e.code === "Space") { e.preventDefault(); e.stopImmediatePropagation(); skip() }
   }
   addEventListener("keydown", onKey, true)
   el.addEventListener("pointerdown", () => skip())
