@@ -90,6 +90,16 @@ class Audio {
     this.tones(base.slice(0, 2 + Math.min(3, level)).map((f, i) => ({ f, t: i * 0.07, d: 0.32, type: "triangle", g: 0.11 })))
   }
   scatter(n: number) { this.tones([{ f: 520 * Math.pow(1.12, n), t: 0, d: 0.7, g: 0.14 }, { f: 1040 * Math.pow(1.12, n), t: 0.03, d: 0.45, g: 0.05 }]) }
+  /** Heartbeat while a reel teases a bonus; brighter as more scatters are down. */
+  tease(level: number) {
+    this.tones([{ f: 62, t: 0, d: 0.16, type: "sine", g: 0.22, slide: 40 }, { f: 62, t: 0.17, d: 0.14, type: "sine", g: 0.14, slide: 40 }])
+    this.tones([{ f: 330 * Math.pow(1.19, Math.min(level, 5) - 2), t: 0, d: 0.3, type: "triangle", g: 0.035 }])
+  }
+  /** A scatter lands: rising chime, one step per scatter on the board. */
+  scatterLand(n: number) {
+    const f = 660 * Math.pow(1.122, Math.min(n, 6) - 1)
+    this.tones([{ f, t: 0, d: 0.35, type: "sine", g: 0.13 }, { f: f * 2, t: 0.02, d: 0.25, type: "triangle", g: 0.04 }])
+  }
   pearl() { this.tones([{ f: 1318.5, t: 0, d: 0.5, g: 0.08 }, { f: 1760, t: 0.08, d: 0.5, g: 0.06 }]) }
   hit() { this.noise(0.25, 180, 60, 0.18, 1.5); this.tones([{ f: 90, t: 0, d: 0.25, type: "square", g: 0.06, slide: 45 }]) }
   power() { this.tones([0, 1, 2, 3].map((i) => ({ f: 300 * Math.pow(1.26, i), t: i * 0.06, d: 0.3, type: "sawtooth" as OscillatorType, g: 0.04 }))) }

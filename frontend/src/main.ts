@@ -609,34 +609,147 @@ const bigWinLabel = (x: number) => BIG_WINS.find(([min]) => x >= min)?.[1] ?? nu
 // ================================================================ event playback
 type Pos = { reel: number; row: number }
 
+// ---------------------------------------------------------------- reel motion
+const prefersReduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches
+const isScatter = (c: Code) => c === "S" || c === "S2"
+/** Symbols shown on the blurred spinning strips (never the mega or the scatters). */
+const STRIP_POOL: Code[] = ["L1", "L2", "L3", "L4", "L5", "H1", "H2", "H3", "H4", "H5", "W"]
+/** Reel timing in ms at normal speed (scaled by speed(): turbo 0.45, slam 0.15). */
+const REEL = {
+  outStagger: 35, out: 240, spinLead: 360, gap: 120, stop: 300, rowStagger: 22,
+  tease: 1200, teaseNext: 950, // extra spin time per teased reel
+}
+
+/** Like sleep(), but finishes within a frame or two once the player slam-stops. */
+function waitSlam(ms: number): Promise<void> {
+  const end = performance.now() + ms * speed()
+  return new Promise((res) => {
+    const tick = () => {
+      const left = end - performance.now()
+      if (left <= 0 || st.slam) return res()
+      setTimeout(tick, Math.min(left, 30))
+    }
+    tick()
+  })
+}
+
+/** A blurred column of random symbols scrolling down, shown while a reel spins. */
+function spinStrip(r: number): { el: HTMLElement; anim: Animation } {
+  const pick = () => STRIP_POOL[Math.floor(Math.random() * STRIP_POOL.length)]!
+  const items = Array.from({ length: N * 2 }, () => `<div class="strip-cell">${symbolSvg(pick())}</div>`).join("")
+  const el = h(`<div class="reel-strip" style="left:${(r * 100) / N}%"><div class="strip-inner">${items}</div></div>`)
+  $(".symbols").append(el)
+  const anim = el.firstElementChild!.animate([{ transform: "translateY(-50%)" }, { transform: "translateY(0)" }],
+    { duration: 300, iterations: Infinity, easing: "linear" })
+  // fade in just behind the old symbols leaving this reel
+  el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160 * speed(), delay: (r * REEL.outStagger + REEL.out * 0.55) * speed(), fill: "backwards" })
+  return { el, anim }
+}
+
+/** Drop a column of cells into place with a landing bounce (bottom row first). */
+function landColumn(els: HTMLElement[], fromRows: number, heavy: boolean): Animation[] {
+  const reduce = prefersReduced()
+  return els.map((el, c) => {
+    const delay = (N - 1 - c) * REEL.rowStagger * speed()
+    if (reduce) return el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160 * speed(), delay, fill: "backwards" })
+    const sq = heavy ? 0.86 : 0.93
+    return el.animate([
+      { transform: `translateY(${-fromRows * 100}%) scaleY(1.12)`, easing: "cubic-bezier(.5,0,.9,.5)" },
+      { transform: `translateY(5%) scaleY(${sq})`, offset: 0.7, easing: "ease-out" },
+      { transform: "translateY(-3%) scaleY(1.03)", offset: 0.86, easing: "ease-in-out" },
+      { transform: "none" },
+    ], { duration: (heavy ? REEL.stop * 1.35 : REEL.stop) * speed(), delay, fill: "backwards" })
+  })
+}
+
+/** Tease frame over a reel that is about to stop with a bonus in reach. */
+function teaseColumn(r: number, level: number): HTMLElement {
+  const el = h(`<div class="tease-col lv${Math.min(level, 4)}" style="left:${(r * 100) / N}%"><i></i></div>`)
+  $(".grid").append(el)
+  return el
+}
+
 async function evReveal(e: BookEvent) {
   const board = (e.board as { name: Code }[][]).map((reel) => reel.map((s) => s.name))
   if ((e.gameType as string) === "basegame") {
     resetSpots(1)
     st.mega = null
   }
-  // old board falls out
-  const old = document.querySelectorAll<HTMLElement>(".symbols .cell")
-  old.forEach((el) => el.classList.add("out"))
-  setTimeout(() => old.forEach((el) => el.remove()), 240 * speed())
-  await sleep(120)
-  st.board = board
-  for (let r = 0; r < N; r++) {
-    for (let c = 0; c < N; c++) {
-      const el = makeCell(board[r]![c]!, r, c, c - N)
-      cells[r]![c] = el
-      el.style.transitionDelay = `${(r * 60 + (N - c) * 22) * speed()}ms`
-    }
-    setTimeout(() => sfx.land(r), (r * 60 + 300) * speed())
-  }
-  void $(".symbols").offsetWidth
-  requestAnimationFrame(() => {
-    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) cells[r]![c]!.style.top = topPct(c)
+  const reduce = prefersReduced()
+  // 1. the old board drops out, reel by reel
+  const old = [...document.querySelectorAll<HTMLElement>(".symbols .cell")]
+  old.forEach((el) => {
+    const r = Math.round((parseFloat(el.style.left) * N) / 100)
+    const a = reduce
+      ? el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 140 * speed(), fill: "forwards" })
+      : el.animate([{ transform: "none", opacity: 1 }, { transform: "translateY(130%)", opacity: 0 }],
+          { duration: REEL.out * speed(), delay: r * REEL.outStagger * speed(), easing: "cubic-bezier(.55,0,1,.45)", fill: "forwards" })
+    a.finished.then(() => el.remove(), () => el.remove())
   })
-  await sleep(380 + 5 * 60 + 6 * 22 + 60)
-  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) cells[r]![c]!.style.transitionDelay = ""
-  const scat = board.flat().filter((s) => s === "S" || s === "S2").length
-  if (scat >= 3) sfx.scatter(scat)
+  // 2. every reel spins as a blurred strip until its stop
+  const strips = reduce ? [] : Array.from({ length: N }, (_, r) => spinStrip(r))
+  st.board = board
+  await waitSlam(reduce ? 140 : REEL.spinLead)
+  // 3. reels stop left to right; with two scatters down, the rest slow down and tease
+  let scatters = 0
+  let teased = 0
+  for (let r = 0; r < N; r++) {
+    let tease: HTMLElement | null = null
+    if (scatters >= 2 && !st.slam && !reduce) {
+      tease = teaseColumn(r, scatters)
+      document.querySelector(".grid")!.classList.add("teasing")
+      const strip = strips[r]!
+      const total = (teased ? REEL.teaseNext : REEL.tease) * speed()
+      const t0 = performance.now()
+      const beat = setInterval(() => sfx.tease(scatters), 380 * speed())
+      sfx.tease(scatters)
+      // the reel visibly loses speed while it teases
+      const slow = setInterval(() => {
+        const k = Math.min(1, (performance.now() - t0) / total)
+        strip.anim.updatePlaybackRate(1 - 0.78 * k)
+        strip.el.style.setProperty("--blur", `${3 - 2.2 * k}px`)
+      }, 40)
+      await waitSlam(teased ? REEL.teaseNext : REEL.tease)
+      clearInterval(beat)
+      clearInterval(slow)
+      teased++
+    } else if (r > 0) {
+      await waitSlam(REEL.gap)
+    }
+    // stop reel r
+    const els: HTMLElement[] = []
+    for (let c = 0; c < N; c++) {
+      const el = makeCell(board[r]![c]!, r, c, c)
+      cells[r]![c] = el
+      els.push(el)
+    }
+    const strip = strips[r]
+    if (strip) {
+      strip.el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 90 * speed(), fill: "forwards" }).finished.then(() => strip.el.remove())
+    }
+    const anims = landColumn(els, 1.25, !!tease)
+    sfx.land(r)
+    const here = board[r]!.filter(isScatter).length
+    if (here) {
+      void Promise.all(anims.map((a) => a.finished)).then(() => {
+        for (let c = 0; c < N; c++) if (isScatter(board[r]![c]!)) {
+          cells[r]![c]?.classList.add("scat-land")
+          fx("fx/glow_ring", "fx-glow", { reel: r, row: c }, 1.6)
+        }
+      })
+    }
+    scatters += here
+    if (here) sfx.scatterLand(scatters)
+    if (tease) {
+      const t = tease
+      t.classList.add("done")
+      setTimeout(() => t.remove(), 260 * speed())
+    }
+  }
+  document.querySelector(".grid")!.classList.remove("teasing")
+  await sleep(REEL.stop + (N - 1) * REEL.rowStagger + 40)
+  document.querySelectorAll(".cell.scat-land").forEach((el) => el.classList.remove("scat-land"))
+  if (scatters >= 3) sfx.scatter(scatters)
 }
 
 async function evWinInfo(e: BookEvent) {
@@ -705,45 +818,68 @@ async function evUpdateBoard(e: BookEvent) {
 async function evTumble(e: BookEvent) {
   const exploding = e.explodingSymbols as Pos[]
   const newSyms = (e.newSymbols as { name: Code }[][]).map((reel) => reel.map((s) => s.name))
+  const reduce = prefersReduced()
+  // 1. winning symbols burst, rippling out from the middle of the win
+  const cx = exploding.reduce((n, p) => n + p.reel, 0) / exploding.length
+  const cy = exploding.reduce((n, p) => n + p.row, 0) / exploding.length
+  let popEnd = 0
   for (const p of exploding) {
     const el = cells[p.reel]![p.row]
-    if (el) {
-      el.classList.remove("win")
-      el.classList.add("pop")
-    }
+    if (!el) continue
+    el.classList.remove("win")
+    el.style.transformOrigin = "50% 50%"
+    const delay = Math.hypot(p.reel - cx, p.row - cy) * 28 * speed()
+    popEnd = Math.max(popEnd, delay)
+    el.animate(reduce ? [{ opacity: 1 }, { opacity: 0 }] : [
+      { transform: "scale(1)", filter: "brightness(1)" },
+      { transform: "scale(1.18)", filter: "brightness(1.6) drop-shadow(0 0 10px #5fe3d2)", offset: 0.3 },
+      { transform: "scale(.1) rotate(14deg)", filter: "brightness(1)", opacity: 0 },
+    ], { duration: 340 * speed(), delay, easing: "ease-in", fill: "forwards" })
   }
   sfx.pop()
   for (const o of st.lastBursts.splice(0)) fx("fx/ink_splash", "fx-ink", o, 2.2)
-  await sleep(380)
+  await sleep(340 + popEnd / speed())
+  // 2. survivors fall under gravity, new symbols drop in from above (bottom first)
   const gone = new Set(exploding.map((p) => `${p.reel},${p.row}`))
+  let longest = 0
   for (let r = 0; r < N; r++) {
-    const survivors: { code: Code; el: HTMLElement }[] = []
+    const survivors: { code: Code; el: HTMLElement; from: number }[] = []
     for (let c = 0; c < N; c++) {
       const el = cells[r]![c]!
       if (gone.has(`${r},${c}`)) el.remove()
-      else survivors.push({ code: st.board[r]![c]!, el })
+      else survivors.push({ code: st.board[r]![c]!, el, from: c })
     }
     const fresh = newSyms[r] ?? []
-    const column: Code[] = [...fresh, ...survivors.map((s) => s.code)]
-    st.board[r] = column
+    if (!fresh.length) continue
+    st.board[r] = [...fresh, ...survivors.map((s) => s.code)]
+    const moves: { el: HTMLElement; rows: number; row: number }[] = []
     survivors.forEach((s, i) => {
       const row = fresh.length + i
-      s.el.classList.add("fall")
-      s.el.style.top = topPct(row)
       cells[r]![row] = s.el
+      if (row !== s.from) {
+        s.el.style.top = topPct(row)
+        moves.push({ el: s.el, rows: row - s.from, row })
+      }
     })
     fresh.forEach((code, i) => {
-      const el = makeCell(code, r, i, i - fresh.length)
-      el.classList.add("fall")
+      const el = makeCell(code, r, i, i)
       cells[r]![i] = el
+      moves.push({ el, rows: fresh.length + 0.35, row: i })
     })
+    for (const m of moves) {
+      const dur = (200 + 55 * m.rows) * speed()
+      const delay = (r * 26 + (N - 1 - m.row) * 18) * speed()
+      longest = Math.max(longest, dur + delay)
+      m.el.animate(reduce ? [{ opacity: 0.4 }, { opacity: 1 }] : [
+        { transform: `translateY(${-m.rows * 100}%)`, easing: "cubic-bezier(.45,0,.85,.4)" },
+        { transform: "translateY(4%) scaleY(.94)", offset: 0.78, easing: "ease-out" },
+        { transform: "translateY(-2%) scaleY(1.02)", offset: 0.9 },
+        { transform: "none" },
+      ], { duration: dur, delay, fill: "backwards" })
+    }
+    setTimeout(() => sfx.land(r), (r * 26 + 220) * speed())
   }
-  void $(".symbols").offsetWidth
-  requestAnimationFrame(() => {
-    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) cells[r]![c]!.style.top = topPct(c)
-  })
-  await sleep(440)
-  document.querySelectorAll(".cell.fall").forEach((el) => el.classList.remove("fall"))
+  await sleep(longest / speed() + 30)
 }
 
 async function playEvents(events: BookEvent[], opts: { mode: string }) {

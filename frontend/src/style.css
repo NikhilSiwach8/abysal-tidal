@@ -269,7 +269,7 @@ img.grid-frame { inset: -4.5%; width: 109%; height: 109%; object-fit: fill; }
 
 .cell {
   position: absolute; width: var(--cell); height: var(--cell); padding: 4px;
-  transition: top calc(.38s * var(--spd)) cubic-bezier(.3, 1.25, .6, 1), opacity .2s;
+  /* motion is keyframed per cell in main.ts (evReveal / evTumble), never a top transition */
 }
 .cell .art { width: 100%; height: 100%; display: block; object-fit: contain; user-select: none; }
 .cell img.art:not(.panel) { padding: 7%; }
@@ -278,11 +278,8 @@ img.grid-frame { inset: -4.5%; width: 109%; height: 109%; object-fit: fill; }
 .tiled img { width: 100%; height: 100%; padding: 9%; object-fit: contain; display: block; }
 .cell.mega { padding: 0; }
 .cell.mega { padding: 0; }
-.cell.out { transition: top calc(.22s * var(--spd)) ease-in, opacity calc(.22s * var(--spd)); top: 110% !important; opacity: 0; }
 .cell.win .art { animation: glow calc(.6s * var(--spd)) ease-in-out infinite alternate; }
 @keyframes glow { from { filter: drop-shadow(0 0 0 var(--teal-hi)); } to { filter: drop-shadow(0 0 10px var(--teal-hi)) brightness(1.25); } }
-.cell.pop { transition: transform calc(.38s * var(--spd)), opacity calc(.38s * var(--spd)); transform: scale(.2); opacity: 0; }
-.cell.fall { transition: top calc(.44s * var(--spd)) cubic-bezier(.3, 1.25, .6, 1); }
 .cell.morph .art { animation: morph calc(.6s * var(--spd)) ease-out; }
 @keyframes morph { from { transform: scale(.3) rotate(-20deg); filter: brightness(3); } to { transform: none; filter: none; } }
 .cell.affect .art { animation: affect calc(.35s * var(--spd)) ease-in-out 2 alternate; }
@@ -569,3 +566,27 @@ table.modes th { font-family: var(--f-lil); font-weight: 400; }
 .armed .wheel-hub-video, .armed .wheel-svg .wheel-hub { cursor: pointer; pointer-events: auto; }
 .wheel-result:empty { display: none; }
 @media (prefers-reduced-motion: reduce) { .armed .wheel-spin { animation: none; } }
+
+/* ---------------------------------------------------------------- reel motion (main.ts evReveal/evTumble) */
+.cell { will-change: transform; transform-origin: 50% 100%; }
+.reel-strip { position: absolute; top: 0; width: var(--cell); height: 100%; overflow: hidden; pointer-events: none; --blur: 3px; }
+.strip-inner { display: flex; flex-direction: column; filter: blur(var(--blur)) brightness(.95); }
+.strip-cell { width: var(--cell); height: var(--cell); padding: 4px; flex: none; }
+.strip-cell .art { width: 100%; height: 100%; display: block; object-fit: contain; }
+.strip-cell img.art:not(.panel) { padding: 7%; }
+.cell.scat-land .art { animation: scatland calc(.7s * var(--spd)) cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes scatland { 0% { transform: scale(1.45); filter: brightness(2.4) drop-shadow(0 0 16px var(--teal-hi)); } 100% { transform: none; filter: drop-shadow(0 0 6px var(--teal-hi)); } }
+/* tease: a framed column that glows while the reel slows down */
+.tease-col { position: absolute; z-index: 3; top: -1.5%; height: 103%; width: var(--cell); pointer-events: none; border-radius: 8px;
+  --tc: var(--teal-hi); box-shadow: 0 0 0 3px var(--tc), 0 0 22px 6px var(--tc), inset 0 0 26px var(--tc); animation: teasepulse calc(.38s * var(--spd)) ease-in-out infinite alternate; }
+.tease-col.lv3 { --tc: var(--gold); }
+.tease-col.lv4 { --tc: #b98cf5; }
+.tease-col i { position: absolute; inset: 0; overflow: hidden; border-radius: 8px; }
+.tease-col i::before { content: ""; position: absolute; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--tc) 45%, transparent), transparent); animation: teasesweep calc(.6s * var(--spd)) linear infinite; }
+@keyframes teasepulse { from { opacity: .65; } to { opacity: 1; } }
+@keyframes teasesweep { from { top: 110%; } to { top: -50%; } }
+.tease-col.done { animation: teasedone calc(.26s * var(--spd)) ease-out forwards; }
+@keyframes teasedone { to { opacity: 0; transform: scaleX(1.25); } }
+.grid.teasing .symbols .cell { filter: brightness(.6) saturate(.7); transition: filter .25s; }
+.grid.teasing .symbols .cell.scat-land, .grid.teasing .symbols .cell[data-code="S"], .grid.teasing .symbols .cell[data-code="S2"] { filter: none; }
+@media (prefers-reduced-motion: reduce) { .tease-col, .tease-col i::before { animation: none; } }

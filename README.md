@@ -108,6 +108,13 @@ npm run build                    # dist/ (relative paths, static only)
   always lands on the outcome already in the book (its `selectedMode` event, or none).
 * The wheel's hub and back glow play transparent loops (`video/`: `WheelHubIdle`, `WheelGlowLoop`)
   over the painted stills, with the same Safari / reduced-motion fallback as the other loops.
+* Reel motion (`evReveal` / `evTumble`, per-cell Web Animations): the old board drops out reel
+  by reel, each reel spins as a blurred symbol strip, reels stop left to right with a landing
+  bounce. With 2+ scatters down, every remaining reel teases (glowing frame teal → gold →
+  violet as scatters add up, heartbeat, the strip visibly decelerating) before it stops; scatters
+  land with a stamp and a rising chime. Tumbles burst in a ripple from the win, survivors fall
+  with gravity, new symbols drop bottom-first. Turbo shortens everything, slam-stop ends the spin
+  and any tease within a frame, reduced motion gets fades only.
 * Leviathan HP bar: damage clips the fill from the left, and power-up node *n* sits exactly
   where the bar's edge is at 25×*n* damage.
 * QA helper (demo only): `?demoBook=<id>` forces a demo book; showcase IDs are in `public/demo/showcase.json`.
