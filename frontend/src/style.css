@@ -161,7 +161,6 @@ button:disabled { cursor: not-allowed; opacity: .45; filter: grayscale(.5); }
 .char .breathe { position: relative; }
 .char.video-on .rig-l, .char.video-on .rig { visibility: hidden; }
 .char.video-on .breathe { animation: none; }
-.leviathan.video-on.recoil .breathe { animation: recoil .35s ease-out; }
 .hero.video-on .hero-pose.idle .loop-video { visibility: visible; }
 /* the hero video lives inside the rig box, which is hidden in video mode */
 .hero.video-on .hero-pose.idle { visibility: visible; }
@@ -205,8 +204,14 @@ button:disabled { cursor: not-allowed; opacity: .45; filter: grayscale(.5); }
 .leviathan { width: calc(var(--g) * .6); height: calc(var(--g) * 1.04); left: calc(50% + var(--g) / 2 + var(--g) * .02); }
 .char .breathe { width: 100%; height: 100%; animation: breathe 5s ease-in-out infinite alternate; transform-origin: 50% 100%; }
 @keyframes breathe { from { transform: translateY(0) rotate(0); } to { transform: translateY(-1.2%) rotate(-.6deg); } }
-.leviathan.recoil .breathe { animation: recoil .35s ease-out, breathe 5s ease-in-out infinite alternate; }
-@keyframes recoil { 0% { transform: translateX(0); filter: brightness(1); } 35% { transform: translateX(10px); filter: brightness(2.2); } 100% { transform: translateX(0); filter: brightness(1); } }
+/* hit flash: a white copy of the Leviathan's silhouette (masked), above the rig and its video; only opacity animates */
+/* visible even in video mode (the rig box is hidden there; the loop video sits inside it at z auto) */
+.hit-flash, .char.video-on .hit-flash { visibility: visible; }
+.hit-flash { position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0; will-change: opacity;
+  background: radial-gradient(ellipse at 40% 35%, #fff, #e6fffb 70%);
+  /* body + head layers together form the full silhouette */
+  -webkit-mask-image: var(--m); mask-image: var(--m); -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-composite: source-over; mask-composite: add; }
 .leviathan.slain .breathe { animation: none; transition: transform 1.6s ease-in, filter 1.6s, opacity 1.6s; transform: translateY(18%) rotate(6deg); filter: grayscale(1); opacity: .35; }
 
 /* ---------------------------------------------------------------- logo */
@@ -286,7 +291,6 @@ img.grid-frame { inset: -4.5%; width: 109%; height: 109%; object-fit: fill; }
 .cell.mega { padding: 0; }
 .cell.win::after, .cell.scat::after { content: ""; position: absolute; inset: 7%; border-radius: 14%; pointer-events: none; box-shadow: 0 0 16px 5px var(--teal-hi), inset 0 0 14px 2px var(--teal-hi); opacity: 0; animation: halo calc(.6s * var(--spd)) ease-in-out infinite alternate; will-change: opacity; }
 @keyframes halo { from { opacity: .15; } to { opacity: 1; } }
-@keyframes glow { from { filter: drop-shadow(0 0 0 var(--teal-hi)); } to { filter: drop-shadow(0 0 10px var(--teal-hi)) brightness(1.25); } }
 .cell.morph .art { animation: morph calc(.6s * var(--spd)) cubic-bezier(.2, 1.5, .4, 1); }
 @keyframes morph { from { transform: scale(.3) rotate(-20deg); opacity: .3; } to { transform: none; opacity: 1; } }
 .cell.morph::after { content: ""; position: absolute; inset: 4%; border-radius: 14%; pointer-events: none; background: radial-gradient(circle, rgba(255,255,255,.95), rgba(95,227,210,.5) 45%, transparent 70%); animation: morphflash calc(.6s * var(--spd)) ease-out forwards; }
@@ -322,9 +326,8 @@ img.grid-frame { inset: -4.5%; width: 109%; height: 109%; object-fit: fill; }
 }
 .buy-badge { grid-area: buy; position: relative; width: clamp(60px, 6vw, 80px); height: clamp(60px, 6vw, 80px); border-radius: 50%; background: center / contain no-repeat; color: var(--ink); font-family: var(--f-mark); font-size: clamp(10px, .9vw, 13px); line-height: .95; filter: drop-shadow(0 3px 0 #000); }
 .buy-badge span { position: absolute; left: 14%; right: 14%; top: 54%; text-align: center; }
-.buy-badge.hunting { animation: huntpulse 1.4s ease-in-out infinite; }
-@keyframes huntpulse { 50% { filter: drop-shadow(0 3px 0 #000) drop-shadow(0 0 14px var(--gold)); } }
-@keyframes huntpulse { 50% { box-shadow: 0 0 22px 6px var(--gold); } }
+.buy-badge::after { content: ""; position: absolute; inset: 2%; border-radius: 50%; pointer-events: none; box-shadow: 0 0 22px 6px var(--gold); opacity: 0; }
+.buy-badge.hunting::after { animation: halo 1.4s ease-in-out infinite alternate; }
 .menu-btn { grid-area: menu; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--ink-2); border: 2px solid #000; }
 .read { display: flex; flex-direction: column; align-items: center; min-width: 0; }
 .read .k { font: 11px var(--f-lil); letter-spacing: .14em; color: var(--teal-hi); }
@@ -362,7 +365,7 @@ img.grid-frame { inset: -4.5%; width: 109%; height: 109%; object-fit: fill; }
 .overlay h1.title-img { transform: none; text-shadow: none; }
 .title-img img { width: min(78vw, 720px); max-height: 32vh; object-fit: contain; display: block; margin: 0 auto; filter: drop-shadow(0 6px 10px rgba(0,0,0,.45)); }
 .overlay .card { position: relative; z-index: 1;
-  text-align: center; padding: 26px 38px; max-width: 92vw; animation: zoomin .6s cubic-bezier(.2, 1.4, .4, 1);
+  text-align: center; padding: 26px 38px; max-width: 92vw; animation: zoomin calc(.6s * var(--spd)) cubic-bezier(.2, 1.4, .4, 1);
 }
 @keyframes zoomin { from { transform: scale(.4) rotate(-6deg); opacity: 0; } to { transform: none; opacity: 1; } }
 .overlay h1 { margin: 0; font-family: var(--f-mark); font-size: clamp(34px, 7vw, 92px); line-height: 1; color: var(--text); text-shadow: 0 5px 0 var(--ink), 0 0 30px rgba(0,0,0,.5); transform: rotate(-3deg); }
@@ -569,8 +572,8 @@ table.modes th { font-family: var(--f-lil); font-weight: 400; }
 .wheel-spin:hover { transform: scale(1.06); }
 .wheel-spin:active { transform: scale(.94); }
 .wheel-spin:focus-visible { outline: 3px solid var(--teal-hi); outline-offset: 4px; border-radius: 50%; }
-.armed .wheel-spin { animation: wheelspinpulse 1.4s ease-in-out infinite; }
-@keyframes wheelspinpulse { 50% { filter: drop-shadow(0 4px 0 #000) drop-shadow(0 0 16px var(--teal-hi)); } }
+.wheel-spin::after { content: ""; position: absolute; inset: 4%; border-radius: 50%; pointer-events: none; box-shadow: 0 0 18px 6px var(--teal-hi); opacity: 0; }
+.armed .wheel-spin::after { animation: halo .7s ease-in-out infinite alternate; }
 .wheel-spin.gone { display: none; }
 .armed .wheel-hub-video, .armed .wheel-svg .wheel-hub { cursor: pointer; pointer-events: auto; }
 .wheel-result:empty { display: none; }

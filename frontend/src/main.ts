@@ -155,6 +155,7 @@ function buildDom() {
       <img class="rig-l" src="${asset("chars/lev_body")}" alt="" draggable="false">
       <img class="rig-l" src="${asset("chars/lev_head")}" alt="" draggable="false" data-part="head">
       <img class="rig-l" src="${asset("chars/lev_gills")}" alt="" draggable="false" data-part="gills">
+      <i class="hit-flash" style="--m:url(${asset("chars/lev_body")}),url(${asset("chars/lev_head")})"></i>
     </div></div></div>
     <div class="logo"><img class="logo-img" src="${asset("lettering/logo")}" alt="Abyssal Tide" draggable="false"><span class="logo-shine" style="--logo:url(${asset("lettering/logo")})"></span><span class="tag" hidden></span></div>
     <main class="stage">
@@ -299,16 +300,19 @@ function setDamage(d: number, hit = false) {
     if (lit && !n.classList.contains("lit")) n.classList.add("lit")
     if (!lit) n.classList.remove("lit")
   })
-  if (hit) {
-    const hp = $(".hp")
-    hp.classList.remove("shake")
-    void hp.offsetWidth
-    hp.classList.add("shake")
-    const lev = $(".leviathan")
+  if (hit && !prefersReduced()) {
+    // keyframed on separate elements: no forced layout, no clash with the idle breathing
+    $(".hp").animate([{ transform: "none" }, { transform: "translateX(-5px)", offset: 0.2 }, { transform: "translateX(5px)", offset: 0.4 },
+      { transform: "translateX(-3px)", offset: 0.6 }, { transform: "translateX(2px)", offset: 0.8 }, { transform: "none" }], { duration: 300 * speed() })
     if (left > 0) slashLeviathan()
-    lev.classList.remove("recoil")
-    void lev.offsetWidth
-    lev.classList.add("recoil")
+    $(".lev-rig").animate([
+      { transform: "none", easing: "cubic-bezier(.2,.8,.3,1)" },
+      { transform: "translateX(2.2%) rotate(1.2deg)", offset: 0.3, easing: "cubic-bezier(.4,0,.2,1)" },
+      { transform: "none" },
+    ], { duration: 380 * speed() })
+    $(".lev-rig .hit-flash").animate([{ opacity: 0 }, { opacity: 0.75, offset: 0.2 }, { opacity: 0 }], { duration: 380 * speed(), easing: "ease-out" })
+  } else if (hit && left > 0) {
+    slashLeviathan()
   }
   $(".leviathan").classList.toggle("slain", left === 0)
   setLeviathanLoopPaused(left === 0)
