@@ -12,7 +12,7 @@ export const theme = {
     gold: "#FFD36B",
     previewBg: "#2A3337", // dark slate behind transparent loops in MP4 previews
   },
-  loop: { seconds: 5, fps: 30 },
+  loop: { seconds: 5, fps: 60 }, // 60 fps: smooth on high-refresh screens
   ease: {
     out: Easing.bezier(0.16, 1, 0.3, 1),
     inOut: Easing.bezier(0.83, 0, 0.17, 1),
