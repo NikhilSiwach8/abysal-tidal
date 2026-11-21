@@ -112,7 +112,9 @@ npm run build                    # dist/ (relative paths, static only)
   `runLoader` fills its bar from real work (every game image decoded, fonts, RGS authenticate),
   shows at least 2.6 s and never more than 12 s. Then the game intro (`showIntro`: logo, three
   feature cards, PRESS TO CONTINUE; tap / Space / Enter, never spins; "Don't show this again"
-  is a per-browser convenience in localStorage). Replay skips the intro. The studio logo cut is
+  is a per-browser convenience in localStorage), then the showdown splash (`showShowdown`:
+  diagonal panel wipe, harpooner and Leviathan slide in face to face, "THE HUNT BEGINS" slams in,
+  fade through black into the slot; ~3.3 s, tap / Space / Enter skips). Replay skips both. The studio logo cut is
   `art/generated/studio/nyxhilx_logo.png` (dark ink blot keyed out of the delivered logo).
 * Reel motion (`evReveal` / `evTumble`, per-cell Web Animations): the old board drops out reel
   by reel, each reel spins as a blurred symbol strip, reels stop left to right with a landing

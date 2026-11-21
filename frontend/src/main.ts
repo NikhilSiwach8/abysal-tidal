@@ -1462,6 +1462,69 @@ function showIntro(): Promise<void> {
   })
 }
 
+/**
+ * Showdown splash between the intro and the slot: a diagonal panel wipe, the harpooner and
+ * the Leviathan slide in face to face, "THE HUNT BEGINS" slams in, then the screen fades
+ * through black into the game. Tap / Space / Enter skips to the fade.
+ */
+function showShowdown(): Promise<void> {
+  const reduce = prefersReduced()
+  const el = h(`<div class="vs${reduce ? " still" : ""}" role="dialog" aria-label="${t("The hunt begins")}">
+    <div class="vs-bg"><i class="vs-ray"></i><i class="vs-ray r2"></i></div>
+    <img class="vs-slash s1" src="${asset("fx/water_slash")}" alt="">
+    <img class="vs-slash s2" src="${asset("fx/water_slash")}" alt="">
+    <img class="vs-ink k1" src="${asset("fx/ink_splash")}" alt=""><img class="vs-ink k2" src="${asset("fx/ink_splash")}" alt="">
+    <div class="vs-char vs-hero"><div class="rig hero-rig">
+      <img class="rig-l" src="${asset("chars/hero_coat")}" alt="" data-part="coat"><img class="rig-l" src="${asset("chars/hero_body")}" alt="">
+      <img class="rig-l" src="${asset("chars/hero_scarf")}" alt="" data-part="scarf"><img class="rig-l" src="${asset("chars/hero_eyes")}" alt="" data-part="eyes">
+    </div></div>
+    <div class="vs-char vs-lev"><div class="rig lev-rig">
+      <img class="rig-l" src="${asset("chars/lev_body")}" alt=""><img class="rig-l" src="${asset("chars/lev_head")}" alt="" data-part="head">
+      <img class="rig-l" src="${asset("chars/lev_gills")}" alt="" data-part="gills">
+    </div></div>
+    <div class="vs-title"><img class="vs-title-slash" src="${asset("fx/water_slash")}" alt=""><h1>${t("THE HUNT BEGINS")}</h1></div>
+    <div class="vs-black"></div>
+  </div>`)
+  st.modal = true
+  document.body.append(el)
+  // timings in ms (scaled down for reduced motion)
+  const T = reduce ? { slam: 150, hold: 1100 } : { slam: 820, hold: 1700 }
+  return new Promise((resolve) => {
+    let leaving = false
+    const timers: number[] = []
+    const leave = () => {
+      if (leaving) return
+      leaving = true
+      timers.forEach(clearTimeout)
+      removeEventListener("keydown", onKey, true)
+      el.classList.add("out")
+      setTimeout(() => {
+        el.classList.add("reveal")
+        st.modal = !!document.querySelector(".modal-wrap")
+        setTimeout(() => {
+          el.remove()
+          resolve()
+        }, 480)
+      }, reduce ? 150 : 380)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== "Space" && e.code !== "Enter" && e.code !== "NumpadEnter") return
+      e.preventDefault()
+      e.stopImmediatePropagation()
+      if (!e.repeat) leave()
+    }
+    addEventListener("keydown", onKey, true)
+    el.addEventListener("click", leave)
+    if (!reduce) timers.push(window.setTimeout(() => sfx.spin(), 120))
+    timers.push(window.setTimeout(() => {
+      el.classList.add("slammed")
+      sfx.hit()
+      sfx.power()
+    }, T.slam))
+    timers.push(window.setTimeout(leave, T.slam + T.hold))
+  })
+}
+
 async function boot() {
   // Start audio on the first touch / key, so creating the AudioContext (tens of ms, once)
   // never lands in the same frame as the first spin animation.
@@ -1492,7 +1555,9 @@ async function boot() {
   }
   const authP = st.provider.authenticate()
   work.push(authP)
-  const ready = runLoader(work).then(() => (introSkipped() ? undefined : showIntro()))
+  const ready = runLoader(work)
+    .then(() => (introSkipped() ? undefined : showIntro()))
+    .then(() => showShowdown())
   try {
     const auth = await authP
     st.jur = auth.jurisdiction as Record<string, unknown>
