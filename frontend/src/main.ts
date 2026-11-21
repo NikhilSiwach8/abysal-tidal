@@ -6,14 +6,14 @@ import "@fontsource/outfit/latin-800.css"
 import "./style.css"
 
 import { NOISE_URL, UI_ICONS, icon } from "./art"
-import { asset, assetsMatching, preload, titleImage } from "./assets"
+import { allAssetUrls, asset, assetsMatching, preloadTracked, titleImage } from "./assets"
 import { setLeviathanLoopPaused, startLoops, attachWheelLoops } from "./loops"
 import bgFar from "./assets/bg/bg_layer_far_fog.webp"
 import bgMid from "./assets/bg/bg_layer_mid_stacks_ship.webp"
 import bgFront from "./assets/bg/bg_layer_front_kelp.webp"
 import bgPortrait from "./assets/bg/bg_portrait.webp"
 import heroVictory from "./assets/chars/hero_victory.webp"
-import { CODES, SYMBOL_NAMES, symbolSvg, symbolUrl, type Code } from "./symbols"
+import { SYMBOL_NAMES, symbolSvg, type Code } from "./symbols"
 import { sfx } from "./audio"
 import { isSocial, setSocial, t, translateTree } from "./text"
 import {
@@ -1367,13 +1367,109 @@ async function bootReplay() {
   }
 }
 
+// ================================================================ studio splash + intro
+const LOADER_MIN_MS = 2600 // the logo reveal and shine finish before the splash leaves
+const LOADER_MAX_MS = 12000 // never hold the player on the splash longer than this
+
+/** Drive the inline splash (index.html): real progress over `work`, then fade out. */
+async function runLoader(work: Promise<unknown>[]): Promise<void> {
+  const el = document.getElementById("loader")
+  if (!el) return
+  const fill = el.querySelector<HTMLElement>(".ld-fill")
+  let done = 0
+  const step = () => {
+    done++
+    const k = done / work.length
+    if (fill) fill.style.transform = `scaleX(${Math.max(0.02, k)})`
+    el.setAttribute("aria-valuenow", String(Math.round(k * 100)))
+  }
+  work.forEach((p) => p.then(step, step))
+  await Promise.race([Promise.allSettled(work), new Promise((r) => setTimeout(r, LOADER_MAX_MS))])
+  if (fill) fill.style.transform = "scaleX(1)"
+  const wait = LOADER_MIN_MS - performance.now()
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait))
+  el.classList.add("done")
+  await new Promise((r) => setTimeout(r, 650))
+  el.remove()
+}
+
+const SKIP_INTRO_KEY = "abyssal-tide:skip-intro"
+function introSkipped(): boolean {
+  try {
+    return localStorage.getItem(SKIP_INTRO_KEY) === "1"
+  } catch {
+    return false
+  }
+}
+
+/** Game intro: logo, three feature cards, "press to continue". Resolves when dismissed. */
+function showIntro(): Promise<void> {
+  const cards: [string, string, string, string][] = [
+    ["teal", t("TUMBLE INTO THE DEEP"),
+      t("Land 5 or more matching symbols in a cluster on the 6×6 grid. Winning symbols vanish and new ones tumble in from above."),
+      `<img src="${asset("ui/illus_freespins")}" alt="" draggable="false">`],
+    ["gold", t("HUNT THE LEVIATHAN"),
+      t("Every winning symbol wounds the Leviathan. Every 25 damage unleashes a power-up, and at 200 it surfaces as a giant mega symbol."),
+      `<span class="pu-row">${[1, 4, 8].map((n) => `<img src="${assetsMatching(`ui/pu/${n}_`)[0]}" alt="" draggable="false">`).join("")}</span>`],
+    ["violet", t("100,000× MAX WIN"),
+      t("Wild clusters double the multiplier spots beneath them, up to 64×. Chain them through the free spins for wins up to 100,000× the bet."),
+      `<span class="wild-art"><img src="${asset("sym/W")}" alt="" draggable="false"><b>×64</b></span>`],
+  ]
+  const el = h(`<div class="intro" role="dialog" aria-modal="true" aria-label="${t("Game introduction")}">
+    <div class="intro-fog"></div>
+    <img class="intro-logo" src="${asset("lettering/logo")}" alt="Abyssal Tide" draggable="false">
+    <div class="intro-cards">${cards.map(([c, title, body, art], i) => `
+      <article class="intro-card glow-${c}" style="--i:${i};background-image:url(${asset("ui/card")})">
+        <h3>${title}</h3><div class="intro-art">${art}</div><p>${body}</p>
+      </article>`).join("")}</div>
+    <button class="intro-go" type="button">${t("PRESS TO CONTINUE")}</button>
+    <label class="intro-skip"><input type="checkbox"> ${t("Don't show this again")}</label>
+  </div>`)
+  translateTree(el)
+  st.modal = true
+  document.body.append(el)
+  const box = el.querySelector<HTMLInputElement>(".intro-skip input")!
+  return new Promise((resolve) => {
+    let closed = false
+    const close = () => {
+      if (closed) return
+      closed = true
+      removeEventListener("keydown", onKey, true)
+      try {
+        if (box.checked) localStorage.setItem(SKIP_INTRO_KEY, "1")
+      } catch {
+        /* storage blocked: the intro simply shows again next time */
+      }
+      sfx.click()
+      el.classList.add("leaving")
+      setTimeout(() => {
+        el.remove()
+        st.modal = !!document.querySelector(".modal-wrap")
+        resolve()
+      }, prefersReduced() ? 0 : 420)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== "Space" && e.code !== "Enter" && e.code !== "NumpadEnter") return
+      e.preventDefault()
+      e.stopImmediatePropagation() // never reaches the spin control
+      if (!e.repeat) close()
+    }
+    addEventListener("keydown", onKey, true)
+    el.addEventListener("click", (e) => {
+      if ((e.target as Element).closest(".intro-skip")) return // ticking the box does not continue
+      close()
+    })
+  })
+}
+
 async function boot() {
   // Start audio on the first touch / key, so creating the AudioContext (tens of ms, once)
   // never lands in the same frame as the first spin animation.
   const warm = () => sfx.unlock()
   addEventListener("pointerdown", warm, { once: true, capture: true })
   addEventListener("keydown", warm, { once: true, capture: true })
-  preload([...CODES.map(symbolUrl), asset("fx/overlay_backdrop"), asset("fx/ink_splash"), asset("fx/glow_ring"), asset("fx/water_slash"), ...assetsMatching("lettering/title_")])
+  // Everything the game draws is decoded behind the splash, so nothing pops in later.
+  const work: Promise<unknown>[] = [...preloadTracked(allAssetUrls()), document.fonts?.ready ?? Promise.resolve()]
   if (params.get("social") === "true") setSocial(true)
   buildDom()
   startLoops()
@@ -1382,7 +1478,9 @@ async function boot() {
   setTierUi(null)
   wire()
   if (st.replay) {
-    $("#loader")?.remove()
+    document.body.classList.add("replay")
+    $(".bar").hidden = true // no bet controls in replay, not even behind the splash
+    await runLoader(work)
     await bootReplay()
     return
   }
@@ -1392,8 +1490,11 @@ async function boot() {
     tag.hidden = false
     tag.textContent = "DEMO"
   }
+  const authP = st.provider.authenticate()
+  work.push(authP)
+  const ready = runLoader(work).then(() => (introSkipped() ? undefined : showIntro()))
   try {
-    const auth = await st.provider.authenticate()
+    const auth = await authP
     st.jur = auth.jurisdiction as Record<string, unknown>
     if (st.jur.socialCasino) setSocial(true)
     st.currency = auth.balance.currency
@@ -1402,9 +1503,11 @@ async function boot() {
     setBalance(auth.balance.amount)
     relabel()
     syncButtons()
+    await ready
     if (auth.activeRound) await resume(auth.activeRound)
   } catch (err) {
     console.warn(err)
+    await ready
     toast("Could not connect to the game server. Please reload.", true)
   }
 }

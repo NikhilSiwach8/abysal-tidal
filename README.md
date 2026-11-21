@@ -108,6 +108,12 @@ npm run build                    # dist/ (relative paths, static only)
   always lands on the outcome already in the book (its `selectedMode` event, or none).
 * The wheel's hub and back glow play transparent loops (`video/`: `WheelHubIdle`, `WheelGlowLoop`)
   over the painted stills, with the same Safari / reduced-motion fallback as the other loops.
+* Start-up: the Nyxhilx studio splash is inline in `index.html` (paints before the bundle loads);
+  `runLoader` fills its bar from real work (every game image decoded, fonts, RGS authenticate),
+  shows at least 2.6 s and never more than 12 s. Then the game intro (`showIntro`: logo, three
+  feature cards, PRESS TO CONTINUE; tap / Space / Enter, never spins; "Don't show this again"
+  is a per-browser convenience in localStorage). Replay skips the intro. The studio logo cut is
+  `art/generated/studio/nyxhilx_logo.png` (dark ink blot keyed out of the delivered logo).
 * Reel motion (`evReveal` / `evTumble`, per-cell Web Animations): the old board drops out reel
   by reel, each reel spins as a blurred symbol strip, reels stop left to right with a landing
   bounce. With 2+ scatters down, every remaining reel teases (glowing frame teal → gold →

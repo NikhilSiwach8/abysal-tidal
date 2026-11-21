@@ -48,3 +48,18 @@ export function preload(urls: string[]): void {
     img.src = u
   }
 }
+
+/** Every bundled image key (for the loader's full preload). */
+export function allAssetUrls(): string[] {
+  return Object.values(byKey)
+}
+
+/** Load and decode images; one promise per URL (failures resolve too, so loading never stalls). */
+export function preloadTracked(urls: string[]): Promise<void>[] {
+  return urls.map((u) => {
+    const img = new Image()
+    img.decoding = "async"
+    img.src = u
+    return img.decode().catch(() => undefined)
+  })
+}

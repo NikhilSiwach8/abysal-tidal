@@ -7,6 +7,40 @@
     <title>Abyssal Tide</title>
   </head>
   <body>
+    <!-- Studio splash: inline so it paints before the game bundle loads (main.ts drives progress and exit). -->
+    <style>
+      #loader { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; overflow: hidden;
+        background: radial-gradient(ellipse 70% 60% at 50% 45%, #1c1834 0%, #0e0c1b 55%, #07060d 100%); transition: opacity .6s ease, visibility .6s; }
+      #loader.done { opacity: 0; visibility: hidden; }
+      #loader .ld-stage { position: relative; width: min(46vw, 760px, 110vh); aspect-ratio: 1354 / 667; }
+      #loader .ld-logo { position: absolute; inset: 0; clip-path: inset(0 50% 0 50%); transform: scale(1.06); opacity: .2;
+        animation: ld-reveal .9s cubic-bezier(.2, .8, .2, 1) .5s forwards; }
+      #loader .ld-logo img { width: 100%; height: 100%; display: block; }
+      #loader .ld-logo::after { content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen;
+        background: linear-gradient(105deg, transparent 40%, rgba(255, 240, 225, .55) 50%, transparent 60%) no-repeat;
+        background-size: 250% 100%; background-position: 140% 0; animation: ld-shine 1.2s ease-in-out 1.6s forwards;
+        -webkit-mask: var(--ld-mask) center / contain no-repeat; mask: var(--ld-mask) center / contain no-repeat; }
+      #loader .ld-line { position: absolute; left: 50%; top: 50%; width: 2px; height: 0; transform: translate(-50%, -50%); border-radius: 2px;
+        background: #e8553e; box-shadow: 0 0 12px 2px rgba(232, 85, 62, .8); animation: ld-line 1.4s ease forwards; }
+      #loader .ld-bar { position: absolute; left: 50%; bottom: 17%; width: min(30vw, 320px); height: 3px; transform: translateX(-50%);
+        border-radius: 3px; background: rgba(255, 255, 255, .1); overflow: hidden; }
+      #loader .ld-fill { position: absolute; inset: 0; transform-origin: 0 50%; transform: scaleX(.02); border-radius: 3px;
+        background: linear-gradient(90deg, #e8553e, #f3e7d7); transition: transform .35s ease-out; }
+      @keyframes ld-line { 0% { height: 0; opacity: 1; } 30% { height: 70%; opacity: 1; } 55% { height: 70%; opacity: 1; } 100% { height: 70%; opacity: 0; } }
+      @keyframes ld-reveal { to { clip-path: inset(0 0 0 0); transform: scale(1); opacity: 1; } }
+      @keyframes ld-shine { to { background-position: -40% 0; } }
+      @media (prefers-reduced-motion: reduce) {
+        #loader .ld-logo { animation: none; clip-path: none; transform: none; opacity: 1; }
+        #loader .ld-line, #loader .ld-logo::after { display: none; }
+      }
+    </style>
+    <div id="loader" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100">
+      <div class="ld-stage" style="--ld-mask: url(./src/assets/ui/studio_logo.webp)">
+        <div class="ld-logo"><img src="./src/assets/ui/studio_logo.webp" alt="Nyxhilx" draggable="false" /></div>
+        <div class="ld-line"></div>
+      </div>
+      <div class="ld-bar"><i class="ld-fill"></i></div>
+    </div>
     <div id="app"></div>
     <script type="module" src="./src/main.ts"></script>
   </body>

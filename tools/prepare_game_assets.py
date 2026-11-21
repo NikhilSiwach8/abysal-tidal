@@ -55,6 +55,8 @@ JOBS = [
     ("effects/ink_splash.png", "fx/ink_splash.webp", 1000),
     ("effects/water_slash.png", "fx/water_slash.webp", 1400),
     ("effects/overlay_backdrop.png", "fx/overlay_backdrop.webp", 1500),
+    # studio splash (letters-only cut of the Nyxhilx logo: art/generated/studio)
+    ("studio/nyxhilx_logo.png", "ui/studio_logo.webp", 1100),
     # Depth Wheel (cut from the delivered sheets by tools/prepare_wheel_art.py)
     ("ui/wheel/wheel_rim.png", "ui/wheel/rim.webp", 1254),
     ("ui/wheel/wheel_hub.png", "ui/wheel/hub.webp", 400),
