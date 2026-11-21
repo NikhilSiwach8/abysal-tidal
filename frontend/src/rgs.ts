@@ -85,7 +85,8 @@ type DemoBook = { id: number; weight: number; payoutMultiplier: number; events: 
 
 class DemoProvider implements Provider {
   readonly kind = "demo" as const
-  private balance = 100_000 * API
+  // QA helper (demo only): ?demoBalance=<amount> starts the demo wallet there
+  private balance = (Number(qs().get("demoBalance")) || 100_000) * API
   private pending = 0
   private cache = new Map<string, DemoBook[]>()
 

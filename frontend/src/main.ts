@@ -839,6 +839,29 @@ async function evGrid(e: BookEvent) {
   setSpots(e.gridMultipliers as number[][])
 }
 
+/**
+ * Power-up callout over the board: the medallion from the boss track bursts out of a teal
+ * glow ring with a water slash behind it (the Depth Wheel's art), then the name slams in,
+ * lettered like the game's titles. Plays alongside the board effect; slam-stop shortens it.
+ */
+function announcePowerUp(feature: string, damage: number): Promise<void> {
+  const n = LADDER.indexOf(feature) + 1
+  if (n < 1) return Promise.resolve()
+  const final = feature === "bossSlain"
+  const el = h(`<div class="pu-call${final ? " final" : ""}" aria-live="polite">
+    <img class="pu-ring" src="${asset("ui/wheel/glow")}" alt="">
+    <img class="pu-slash" src="${asset("fx/water_slash")}" alt="">
+    <img class="pu-medal" src="${asset(`ui/pu/${n}_${feature}`)}" alt="">
+    <div class="pu-text"><span class="pu-k">${t("POWER-UP")} ${n} · ${Math.min(damage, BOSS_HP)} ${t("DAMAGE")}</span>
+      <b class="pu-name">${t(POWER_NAMES[feature]!.toUpperCase())}</b></div>
+  </div>`)
+  if (prefersReduced()) el.classList.add("still")
+  $(".grid").append(el)
+  const ms = 1250 * speed()
+  el.style.setProperty("--dur", `${ms}ms`)
+  return new Promise((res) => setTimeout(() => { el.remove(); res() }, ms))
+}
+
 async function evFeature(e: BookEvent) {
   const info = (e.info as Record<string, unknown>[])[0]!
   if (e.featureType === "damage") {
@@ -850,6 +873,7 @@ async function evFeature(e: BookEvent) {
   const positions = info.positions as Pos[]
   banner(`POWER-UP · ${POWER_NAMES[feature] ?? feature}`)
   sfx.power()
+  const shout = announcePowerUp(feature, info.damage as number)
   if (feature === "bossSlain") {
     const r0 = Math.min(...positions.map((p) => p.reel))
     const c0 = Math.min(...positions.map((p) => p.row))
@@ -858,7 +882,7 @@ async function evFeature(e: BookEvent) {
     await overlay(`${heading("THE LEVIATHAN RISES")}<p>A ${info.size}×${info.size} Leviathan surfaces</p>`, 1800)
   }
   for (const p of positions) cells[p.reel]![p.row]?.classList.add("affect")
-  await sleep(700)
+  await Promise.all([sleep(700), shout])
   for (const p of positions) cells[p.reel]![p.row]?.classList.remove("affect")
 }
 
@@ -1147,14 +1171,19 @@ function buyCard(id: string, title: string, desc: string, illus: string, row2 = 
   const isHunt = id === "hunt" || id === "deep_hunt"
   const active = st.ante === id
   const cost = MODE_COST[id]!
-  return `<article style="background-image:url(${asset("ui/card")})" class="bcard${row2 ? " r2" : ""}${ABYSS.has(id) ? " has-abyss" : ""}" data-mode="${id}">
-    ${ABYSS.has(id) ? `<div class="abyss-badge">CHANCE OF ABYSSAL BONUS</div>` : ""}
+  // a hunt can always be switched off; anything else needs the balance for one round at this bet
+  const short = st.balance < st.bet * cost && !(isHunt && active)
+  return `<article style="background-image:url(${asset("ui/card")})" class="bcard${row2 ? " r2" : ""}${ABYSS.has(id) ? " has-abyss" : ""}${short ? " short" : ""}" data-mode="${id}">
+    ${ABYSS.has(id) ? `<div class="abyss-badge"><span>${t("CHANCE OF")}<br>${t("ABYSSAL")}<br>${t("BONUS")}</span></div>` : ""}
     <h4>${t(title)}</h4>
     <div class="illus">${illus}</div>
     <div class="desc">${t(desc)}</div>
     <div class="vol"><b style="left:${VOL[id]}%"></b></div><div class="vol-l"><span>LOW</span><span>VOLATILITY</span><span>HIGH</span></div>
     <div class="price">${fmt(st.bet * cost)}</div>
-    ${isHunt ? `<button class="btn ${active ? "gold" : "blue"}" data-hunt="${id}">${active ? "ACTIVE ✓" : "ACTIVATE"}</button>` : `<button class="btn green" data-buy="${id}">${t("BUY")}</button>`}
+    ${isHunt
+      ? `<button class="btn ${active ? "gold" : "blue"}" data-hunt="${id}"${short ? " disabled" : ""}>${active ? "ACTIVE ✓" : "ACTIVATE"}</button>`
+      : `<button class="btn green" data-buy="${id}"${short ? " disabled" : ""}>${t("BUY")}</button>`}
+    ${short ? `<div class="short-note">${t("Balance too low")}</div>` : ""}
   </article>`
 }
 
@@ -1179,6 +1208,7 @@ function openBuy() {
   const wire = () => {
     sheet.querySelectorAll<HTMLButtonElement>("[data-hunt]").forEach((b) => (b.onclick = () => {
       const id = b.dataset.hunt as "hunt" | "deep_hunt"
+      if (b.disabled) return
       st.ante = st.ante === id ? null : id
       toast(st.ante ? `${id === "hunt" ? "Leviathan Hunt" : "Trench Hunt"} active — ${MODE_COST[id]}× bet every spin` : "Hunt deactivated")
       updateBetReadout()
@@ -1187,6 +1217,7 @@ function openBuy() {
     }))
     sheet.querySelectorAll<HTMLButtonElement>("[data-buy]").forEach((b) => (b.onclick = async () => {
       const id = b.dataset.buy!
+      if (b.disabled || st.balance < st.bet * MODE_COST[id]!) return
       const name = MODES.find((x) => x.id === id)!.name
       const ok = await confirmDialog(`Buy ${name}?`, `${MODES.find((x) => x.id === id)!.buys}. Price: ${fmt(st.bet * MODE_COST[id]!)}`, "Buy")
       if (!ok) return

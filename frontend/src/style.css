@@ -430,7 +430,14 @@ table.modes th { font-family: var(--f-lil); font-weight: 400; }
 .vol-l { width: 100%; display: flex; justify-content: space-between; font-size: 10px; font-weight: 800; letter-spacing: .1em; }
 .bcard .price { font-family: var(--f-lil); font-size: 22px; }
 .bcard .btn { width: 100%; }
-.abyss-badge { position: absolute; right: -11%; top: -13%; width: 28%; aspect-ratio: 1; background: var(--ink); color: var(--purple); font: 9px/1.05 var(--f-lil); display: grid; place-items: center; text-align: center; padding: 6px; transform: rotate(12deg); border: 2px solid var(--purple); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+/* "chance of Abyssal" badge: lettered like the card titles (Permanent Marker), violet hexagon with an ink rim */
+.abyss-badge { position: absolute; z-index: 2; right: -10%; top: -10%; width: 34%; aspect-ratio: 1; transform: rotate(12deg);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: var(--purple); padding: 3px;
+  filter: drop-shadow(0 3px 0 rgba(0,0,0,.5)); animation: badge-pulse 2.4s ease-in-out infinite; }
+.abyss-badge span { display: grid; place-items: center; width: 100%; height: 100%; text-align: center;
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: var(--ink);
+  font-family: var(--f-mark); font-size: clamp(8px, .72vw, 12px); line-height: 1.05; letter-spacing: .01em; color: #c9a8ff; white-space: nowrap; }
+@keyframes badge-pulse { 50% { transform: rotate(12deg) scale(1.06); } }
 .bet-panel { display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 20px; font-family: var(--f-lil); font-size: 20px; }
 .bet-panel .sq { width: 40px; height: 40px; border-radius: 6px; background: var(--ink); color: var(--text); display: grid; place-items: center; }
 .bet-panel .amt { min-width: 120px; text-align: center; background: #fff; border: 2.5px solid var(--ink); border-radius: 6px; padding: 4px 10px; }
@@ -736,3 +743,33 @@ table.modes th { font-family: var(--f-lil); font-weight: 400; }
 .vs.still .vs-char { opacity: 1; }
 .vs.still.slammed { animation: none; }
 .vs.still.slammed .vs-title { animation: vs-fade .2s forwards; transform: translate(-50%, -50%); }
+
+/* buy menu: not enough balance for this feature at the current bet */
+.btn:disabled { cursor: not-allowed; filter: grayscale(1) brightness(.85); box-shadow: none; transform: translateY(3px); opacity: .75; }
+.bcard.short .price { color: #b3261e; text-decoration: line-through; text-decoration-thickness: 2px; }
+.bcard .short-note { margin-top: -4px; font: 12px var(--f-lil); color: #b3261e; letter-spacing: .03em; }
+
+/* ---------------------------------------------------------------- power-up callout (main.ts announcePowerUp) */
+.pu-call { --dur: 1250ms; position: absolute; z-index: 6; left: 50%; top: 50%; width: 92%; transform: translate(-50%, -50%);
+  display: grid; justify-items: center; pointer-events: none; animation: pu-out var(--dur) ease-in forwards; }
+@keyframes pu-out { 0%, 82% { opacity: 1; } 100% { opacity: 0; } }
+.pu-ring { position: absolute; top: 50%; left: 50%; width: 62%; transform: translate(-50%, -64%); opacity: 0;
+  animation: pu-ring calc(var(--dur) * .7) cubic-bezier(.2, .9, .3, 1) forwards; }
+@keyframes pu-ring { 0% { opacity: 0; transform: translate(-50%, -64%) scale(.3) rotate(-30deg); } 30% { opacity: 1; } 100% { opacity: .85; transform: translate(-50%, -64%) scale(1) rotate(10deg); } }
+.pu-slash { position: absolute; top: 58%; left: 50%; width: 112%; transform: translate(-50%, -50%) rotate(-6deg); opacity: 0;
+  animation: pu-slash calc(var(--dur) * .45) ease-out calc(var(--dur) * .12) forwards; }
+@keyframes pu-slash { from { opacity: 0; translate: -40% 0; } to { opacity: .9; translate: 0 0; } }
+.pu-medal { position: relative; width: 30%; filter: sepia(1) hue-rotate(125deg) saturate(3.2) brightness(.95) drop-shadow(0 6px 10px rgba(0,0,0,.55));
+  animation: pu-medal calc(var(--dur) * .45) cubic-bezier(.2, 1.6, .4, 1) backwards; }
+.final .pu-medal { filter: sepia(1) saturate(5) hue-rotate(-8deg) brightness(1.1) drop-shadow(0 0 18px var(--gold)); }
+@keyframes pu-medal { from { transform: scale(.1) rotate(-25deg); opacity: 0; } }
+.pu-text { position: relative; display: grid; justify-items: center; margin-top: -2%; }
+.pu-k { font: calc(var(--g) * .03) var(--f-lil); letter-spacing: .12em; color: var(--teal-hi); text-shadow: 0 2px 0 var(--ink), 0 0 8px var(--ink);
+  animation: pu-medal calc(var(--dur) * .35) ease-out calc(var(--dur) * .2) backwards; }
+.final .pu-k { color: var(--gold); }
+.pu-name { font-family: var(--f-mark); font-weight: normal; font-size: calc(var(--g) * .105); line-height: .95; color: #f3f5f2; white-space: nowrap;
+  -webkit-text-stroke: calc(var(--g) * .009) var(--ink); paint-order: stroke fill; text-shadow: 0 calc(var(--g) * .008) 0 var(--ink); transform: rotate(-4deg);
+  animation: pu-slam calc(var(--dur) * .4) cubic-bezier(.2, 1.5, .35, 1) calc(var(--dur) * .16) backwards; }
+@keyframes pu-slam { 0% { opacity: 0; transform: rotate(-4deg) scale(2.4); } 40% { opacity: 1; } 100% { transform: rotate(-4deg) scale(1); } }
+.pu-call.still *, .pu-call.still { animation: none; opacity: 1; }
+.pu-call.still .pu-ring { transform: translate(-50%, -64%); }
