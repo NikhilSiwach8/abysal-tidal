@@ -76,8 +76,13 @@ untouched, so the SDK's book hashes and `execute_all_tests` still verify.
 
 Final audit (`tools/audit_publish.py --books`, 100,000 books per mode): every mode at
 96.7000%, spread 0.0000%, base hit rate 1 in 3.18, max win 100,000× reachable in every
-mode (base about 1 in 5.6M). The SDK's Studio risk checks flag volatility/tail limits in
-base, hunt, ultra, mystery and mystery_deep, which caps the max base bet template at $100.
+mode (base about 1 in 10M).
+
+**Stake risk checks.** `tools/risk_checks.py` reproduces the publish page's risk checks
+(volatility ≤ 60× cost, worst-0.1% CVaR ≤ 700× cost and ≤ 50,000× base bet, big-win
+frequency 5k+/10k+/25k+/50k+/100k+ ≤ 1 in 20/100/200/1,000/2,000) from the lookup tables.
+The solver meets them with a per-mode tail damping (see `optimize_weights.py`), leaving
+RTP, hit rates and books unchanged; every check passes with at least 3% headroom.
 
 ## Frontend
 
