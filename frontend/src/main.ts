@@ -208,7 +208,7 @@ function cellHtml(code: Code, r: number, c: number): string {
 }
 
 function makeCell(code: Code, r: number, c: number, fromRow: number): HTMLElement {
-  const el = h(`<div class="cell${code === "H6" ? " mega" : ""}" style="left:${(r * 100) / N}%;top:${topPct(fromRow)}">${cellHtml(code, r, c)}</div>`)
+  const el = h(`<div class="cell${code === "H6" ? " mega" : ""}${code === "S" || code === "S2" ? " is-scat" : ""}" style="left:${(r * 100) / N}%;top:${topPct(fromRow)}">${cellHtml(code, r, c)}</div>`)
   el.dataset.code = code
   $(".symbols").append(el)
   return el
@@ -633,6 +633,50 @@ function waitSlam(ms: number): Promise<void> {
   })
 }
 
+/**
+ * Drop curve as a CSS linear() easing: the symbol arrives already moving (v0), accelerates
+ * like it is falling, hits at `impact`, rebounds by `bounce` (fraction of the drop) and settles.
+ * Sampled finely so the motion stays smooth; falls back to a cubic-bezier where linear()
+ * is not supported (older Safari).
+ */
+const LINEAR_OK = typeof CSS !== "undefined" && CSS.supports?.("animation-timing-function", "linear(0, 1)")
+const easingCache = new Map<string, string>()
+function dropEasing(bounce: number, v0 = 0.35, impact = 0.68): string {
+  if (!LINEAR_OK) return "cubic-bezier(.45,.05,.55,1.15)"
+  const key = `${bounce.toFixed(3)}|${v0}|${impact}`
+  const hit = easingCache.get(key)
+  if (hit) return hit
+  const pts: string[] = []
+  const n = 48
+  for (let i = 0; i <= n; i++) {
+    const t = i / n
+    let x: number
+    if (t <= impact) {
+      const u = t / impact
+      x = v0 * u + (1 - v0) * u * u
+    } else {
+      const tau = (t - impact) / (1 - impact)
+      x = 1 - bounce * Math.sin(Math.PI * tau) * Math.pow(1 - tau, 0.6)
+    }
+    pts.push(`${x.toFixed(4)} ${(t * 100).toFixed(2)}%`)
+  }
+  const v = `linear(${pts.join(", ")})`
+  easingCache.set(key, v)
+  return v
+}
+
+/** Small squash on the symbol art at the moment of impact (separate element: no transform clash). */
+function squashAt(cell: HTMLElement, at: number, strength = 1) {
+  const art = cell.querySelector<HTMLElement>(".art")
+  if (!art || prefersReduced()) return
+  const k = 0.07 * strength
+  art.animate([
+    { transform: "none" },
+    { transform: `scale(${1 + k * 0.6}, ${1 - k})`, offset: 0.35 },
+    { transform: "none" },
+  ], { duration: 190 * speed(), delay: at, easing: "ease-out" })
+}
+
 /** A blurred column of random symbols scrolling down, shown while a reel spins. */
 function spinStrip(r: number): { el: HTMLElement; anim: Animation } {
   const pick = () => STRIP_POOL[Math.floor(Math.random() * STRIP_POOL.length)]!
@@ -649,17 +693,25 @@ function spinStrip(r: number): { el: HTMLElement; anim: Animation } {
 /** Drop a column of cells into place with a landing bounce (bottom row first). */
 function landColumn(els: HTMLElement[], fromRows: number, heavy: boolean): Animation[] {
   const reduce = prefersReduced()
+  const dur = (heavy ? REEL.stop * 1.3 : REEL.stop) * speed()
+  const easing = dropEasing(heavy ? 0.075 : 0.05, 0.45)
   return els.map((el, c) => {
     const delay = (N - 1 - c) * REEL.rowStagger * speed()
     if (reduce) return el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160 * speed(), delay, fill: "backwards" })
-    const sq = heavy ? 0.86 : 0.93
-    return el.animate([
-      { transform: `translateY(${-fromRows * 100}%) scaleY(1.12)`, easing: "cubic-bezier(.5,0,.9,.5)" },
-      { transform: `translateY(5%) scaleY(${sq})`, offset: 0.7, easing: "ease-out" },
-      { transform: "translateY(-3%) scaleY(1.03)", offset: 0.86, easing: "ease-in-out" },
-      { transform: "none" },
-    ], { duration: (heavy ? REEL.stop * 1.35 : REEL.stop) * speed(), delay, fill: "backwards" })
+    squashAt(el, delay + dur * 0.68, heavy ? 1.4 : 1)
+    return el.animate([{ transform: `translateY(${-fromRows * 100}%)` }, { transform: "translateY(0)" }],
+      { duration: dur, delay, easing, fill: "backwards" })
   })
+}
+
+/** One dimming layer over the board while reels tease (scatters sit above it). */
+function setTeaseDim(on: boolean) {
+  let dim = document.querySelector<HTMLElement>(".symbols .tease-dim")
+  if (!dim) {
+    dim = h(`<div class="tease-dim"></div>`)
+    $(".symbols").append(dim)
+  }
+  dim.classList.toggle("on", on)
 }
 
 /** Tease frame over a reel that is about to stop with a bonus in reach. */
@@ -697,21 +749,24 @@ async function evReveal(e: BookEvent) {
     let tease: HTMLElement | null = null
     if (scatters >= 2 && !st.slam && !reduce) {
       tease = teaseColumn(r, scatters)
-      document.querySelector(".grid")!.classList.add("teasing")
+      setTeaseDim(true)
       const strip = strips[r]!
+      strip.el.classList.add("teased") // stays bright above the dimming layer
       const total = (teased ? REEL.teaseNext : REEL.tease) * speed()
       const t0 = performance.now()
       const beat = setInterval(() => sfx.tease(scatters), 380 * speed())
       sfx.tease(scatters)
-      // the reel visibly loses speed while it teases
-      const slow = setInterval(() => {
+      // the reel visibly loses speed while it teases (eased every frame, no steps)
+      let raf = 0
+      const slow = () => {
         const k = Math.min(1, (performance.now() - t0) / total)
-        strip.anim.updatePlaybackRate(1 - 0.78 * k)
-        strip.el.style.setProperty("--blur", `${3 - 2.2 * k}px`)
-      }, 40)
+        strip.anim.playbackRate = 1 - 0.8 * (1 - Math.pow(1 - k, 2.2))
+        if (k < 1) raf = requestAnimationFrame(slow)
+      }
+      raf = requestAnimationFrame(slow)
       await waitSlam(teased ? REEL.teaseNext : REEL.tease)
       clearInterval(beat)
-      clearInterval(slow)
+      cancelAnimationFrame(raf)
       teased++
     } else if (r > 0) {
       await waitSlam(REEL.gap)
@@ -725,7 +780,7 @@ async function evReveal(e: BookEvent) {
     }
     const strip = strips[r]
     if (strip) {
-      strip.el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 90 * speed(), fill: "forwards" }).finished.then(() => strip.el.remove())
+      strip.el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120 * speed(), easing: "ease-out", fill: "forwards" }).finished.then(() => strip.el.remove())
     }
     const anims = landColumn(els, 1.25, !!tease)
     sfx.land(r)
@@ -746,7 +801,7 @@ async function evReveal(e: BookEvent) {
       setTimeout(() => t.remove(), 260 * speed())
     }
   }
-  document.querySelector(".grid")!.classList.remove("teasing")
+  setTeaseDim(false)
   await sleep(REEL.stop + (N - 1) * REEL.rowStagger + 40)
   document.querySelectorAll(".cell.scat-land").forEach((el) => el.classList.remove("scat-land"))
   if (scatters >= 3) sfx.scatter(scatters)
@@ -830,11 +885,12 @@ async function evTumble(e: BookEvent) {
     el.style.transformOrigin = "50% 50%"
     const delay = Math.hypot(p.reel - cx, p.row - cy) * 28 * speed()
     popEnd = Math.max(popEnd, delay)
+    el.classList.add("bursting")
     el.animate(reduce ? [{ opacity: 1 }, { opacity: 0 }] : [
-      { transform: "scale(1)", filter: "brightness(1)" },
-      { transform: "scale(1.18)", filter: "brightness(1.6) drop-shadow(0 0 10px #5fe3d2)", offset: 0.3 },
-      { transform: "scale(.1) rotate(14deg)", filter: "brightness(1)", opacity: 0 },
-    ], { duration: 340 * speed(), delay, easing: "ease-in", fill: "forwards" })
+      { transform: "scale(1)", opacity: 1, easing: "cubic-bezier(.2,.8,.3,1)" },
+      { transform: "scale(1.16)", opacity: 1, offset: 0.32, easing: "cubic-bezier(.6,0,.9,.4)" },
+      { transform: "scale(.12) rotate(14deg)", opacity: 0 },
+    ], { duration: 360 * speed(), delay, fill: "forwards" })
   }
   sfx.pop()
   for (const o of st.lastBursts.splice(0)) fx("fx/ink_splash", "fx-ink", o, 2.2)
@@ -867,15 +923,17 @@ async function evTumble(e: BookEvent) {
       moves.push({ el, rows: fresh.length + 0.35, row: i })
     })
     for (const m of moves) {
-      const dur = (200 + 55 * m.rows) * speed()
+      // longer falls take longer (gravity, ~sqrt of the distance) and bounce a touch more
+      const dur = (210 + 120 * Math.sqrt(m.rows)) * speed()
       const delay = (r * 26 + (N - 1 - m.row) * 18) * speed()
       longest = Math.max(longest, dur + delay)
-      m.el.animate(reduce ? [{ opacity: 0.4 }, { opacity: 1 }] : [
-        { transform: `translateY(${-m.rows * 100}%)`, easing: "cubic-bezier(.45,0,.85,.4)" },
-        { transform: "translateY(4%) scaleY(.94)", offset: 0.78, easing: "ease-out" },
-        { transform: "translateY(-2%) scaleY(1.02)", offset: 0.9 },
-        { transform: "none" },
-      ], { duration: dur, delay, fill: "backwards" })
+      if (reduce) {
+        m.el.animate([{ opacity: 0.4 }, { opacity: 1 }], { duration: dur, delay, fill: "backwards" })
+        continue
+      }
+      m.el.animate([{ transform: `translateY(${-m.rows * 100}%)` }, { transform: "translateY(0)" }],
+        { duration: dur, delay, easing: dropEasing(Math.min(0.07, 0.11 / m.rows), 0.08, 0.72), fill: "backwards" })
+      squashAt(m.el, delay + dur * 0.72, Math.min(1.3, 0.6 + m.rows * 0.2))
     }
     setTimeout(() => sfx.land(r), (r * 26 + 220) * speed())
   }
@@ -1310,6 +1368,11 @@ async function bootReplay() {
 }
 
 async function boot() {
+  // Start audio on the first touch / key, so creating the AudioContext (tens of ms, once)
+  // never lands in the same frame as the first spin animation.
+  const warm = () => sfx.unlock()
+  addEventListener("pointerdown", warm, { once: true, capture: true })
+  addEventListener("keydown", warm, { once: true, capture: true })
   preload([...CODES.map(symbolUrl), asset("fx/overlay_backdrop"), asset("fx/ink_splash"), asset("fx/glow_ring"), asset("fx/water_slash"), ...assetsMatching("lettering/title_")])
   if (params.get("social") === "true") setSocial(true)
   buildDom()

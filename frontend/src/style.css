@@ -51,14 +51,15 @@ button:disabled { cursor: not-allowed; opacity: .45; filter: grayscale(.5); }
   .bg-portrait { display: block; }
 }
 .environment-fog {
-  position: absolute; inset: 0; pointer-events: none; opacity: .4; transition: opacity 1.2s ease;
+  /* 140% wide and slid by transform (composited), not by background-position (repaints every frame) */
+  position: absolute; top: 0; bottom: 0; left: 0; width: 140%; pointer-events: none; opacity: .4; transition: opacity 1.2s ease; will-change: transform;
   background:
     radial-gradient(ellipse 60% 30% at 30% 85%, rgba(220, 223, 215, .9), transparent 70%),
     radial-gradient(ellipse 55% 28% at 75% 80%, rgba(220, 223, 215, .8), transparent 70%),
     linear-gradient(180deg, transparent 45%, rgba(201, 206, 198, .55) 100%);
-  background-size: 140% 100%; animation: fog-drift 30s linear infinite alternate;
+  background-size: 100% 100%; animation: fog-drift 30s linear infinite alternate;
 }
-@keyframes fog-drift { from { background-position: 0% 0; } to { background-position: 100% 0; } }
+@keyframes fog-drift { from { transform: translateX(0); } to { transform: translateX(-28.57%); } }
 .particles { position: absolute; inset: 0; pointer-events: none; }
 .particle { position: absolute; display: block; transition: filter 1.2s ease; }
 .bubble { bottom: -40px; height: auto; opacity: .85; animation: bubble 12s linear infinite; }
@@ -171,14 +172,14 @@ button:disabled { cursor: not-allowed; opacity: .45; filter: grayscale(.5); }
 /* background loop replaces the layered scene in landscape (portrait keeps its painted scene) */
 .bg-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; transition: filter 1.2s ease; }
 .bgvideo-on .bg-far, .bgvideo-on .bg-mid, .bgvideo-on .bg-front, .bgvideo-on .bg-rays, .bgvideo-on .particles { display: none; }
-.bgvideo-on .environment-fog { opacity: 0; }
-.bgvideo-on.tier-maelstrom .environment-fog { opacity: .35; }
+.bgvideo-on .environment-fog { opacity: 0; animation-play-state: paused; }
+.bgvideo-on.tier-maelstrom .environment-fog { opacity: .35; animation-play-state: running; }
 /* Abyssal: the loop's particles are baked in, so the glowing live particles return on top */
 .bgvideo-on.tier-abyssal .particles { display: block; }
 @media (max-aspect-ratio: 5/4), (max-width: 820px) and (min-height: 521px) {
   .bg-video { display: none; }
   .bgvideo-on .particles { display: block; }
-  .bgvideo-on .environment-fog { opacity: .4; }
+  .bgvideo-on .environment-fog { opacity: .4; animation-play-state: running; }
 }
 /* tier grading on the background loop (calibrated like the layers; see "tier grading") */
 .tier-riptide .bg-video   { filter: sepia(10%) saturate(115%) brightness(0.979); }
@@ -262,8 +263,8 @@ img.grid-frame { inset: -4.5%; width: 109%; height: 109%; object-fit: fill; }
 .spot.l4 i { background-color: #f2a6cf; }
 .spot.l5 i, .spot.l6 i { background-color: #ffd36b; }
 .spot.l6 i { box-shadow: 0 0 14px var(--gold) inset; }
-.spot.flash i { animation: flash .5s; }
-@keyframes flash { 50% { filter: brightness(1.6); transform: scale(1.06); } }
+.spot.flash i { animation: flash .5s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes flash { 50% { transform: scale(1.08); } }
 .badge { position: absolute; right: 4px; top: 3px; font-family: var(--f-lil); font-size: calc(var(--g) * .024); padding: 0 4px; border-radius: 4px; background: var(--ink); color: var(--gold); line-height: 1.3; }
 .lab { position: absolute; width: var(--cell); height: var(--cell); }
 
@@ -278,13 +279,16 @@ img.grid-frame { inset: -4.5%; width: 109%; height: 109%; object-fit: fill; }
 .tiled img { width: 100%; height: 100%; padding: 9%; object-fit: contain; display: block; }
 .cell.mega { padding: 0; }
 .cell.mega { padding: 0; }
-.cell.win .art { animation: glow calc(.6s * var(--spd)) ease-in-out infinite alternate; }
+.cell.win::after, .cell.scat::after { content: ""; position: absolute; inset: 7%; border-radius: 14%; pointer-events: none; box-shadow: 0 0 16px 5px var(--teal-hi), inset 0 0 14px 2px var(--teal-hi); opacity: 0; animation: halo calc(.6s * var(--spd)) ease-in-out infinite alternate; will-change: opacity; }
+@keyframes halo { from { opacity: .15; } to { opacity: 1; } }
 @keyframes glow { from { filter: drop-shadow(0 0 0 var(--teal-hi)); } to { filter: drop-shadow(0 0 10px var(--teal-hi)) brightness(1.25); } }
-.cell.morph .art { animation: morph calc(.6s * var(--spd)) ease-out; }
-@keyframes morph { from { transform: scale(.3) rotate(-20deg); filter: brightness(3); } to { transform: none; filter: none; } }
-.cell.affect .art { animation: affect calc(.35s * var(--spd)) ease-in-out 2 alternate; }
-@keyframes affect { to { filter: drop-shadow(0 0 12px var(--gold)) brightness(1.5); } }
-.cell.scat .art { animation: glow calc(.45s * var(--spd)) ease-in-out 4 alternate; }
+.cell.morph .art { animation: morph calc(.6s * var(--spd)) cubic-bezier(.2, 1.5, .4, 1); }
+@keyframes morph { from { transform: scale(.3) rotate(-20deg); opacity: .3; } to { transform: none; opacity: 1; } }
+.cell.morph::after { content: ""; position: absolute; inset: 4%; border-radius: 14%; pointer-events: none; background: radial-gradient(circle, rgba(255,255,255,.95), rgba(95,227,210,.5) 45%, transparent 70%); animation: morphflash calc(.6s * var(--spd)) ease-out forwards; }
+@keyframes morphflash { from { opacity: 1; transform: scale(.6); } to { opacity: 0; transform: scale(1.25); } }
+.cell.affect::after { content: ""; position: absolute; inset: 6%; border-radius: 14%; pointer-events: none; box-shadow: 0 0 18px 6px var(--gold), inset 0 0 16px 3px var(--gold); opacity: 0; animation: affect calc(.35s * var(--spd)) ease-in-out 2 alternate; }
+@keyframes affect { to { opacity: 1; } }
+.cell.scat::after { animation-duration: calc(.45s * var(--spd)); animation-iteration-count: 4; }
 
 .fx { position: absolute; z-index: 4; transform: translate(-50%, -50%); pointer-events: none; height: auto; }
 .fx-glow { animation: fx-glow calc(.9s * var(--spd)) ease-out forwards; mix-blend-mode: screen; }
@@ -569,24 +573,29 @@ table.modes th { font-family: var(--f-lil); font-weight: 400; }
 
 /* ---------------------------------------------------------------- reel motion (main.ts evReveal/evTumble) */
 .cell { will-change: transform; transform-origin: 50% 100%; }
-.reel-strip { position: absolute; top: 0; width: var(--cell); height: 100%; overflow: hidden; pointer-events: none; --blur: 3px; }
-.strip-inner { display: flex; flex-direction: column; filter: blur(var(--blur)) brightness(.95); }
+.reel-strip { position: absolute; top: 0; width: var(--cell); height: 100%; overflow: hidden; pointer-events: none; }
+/* each image is blurred once (static); only the column moves, on the compositor */
+.strip-inner { display: flex; flex-direction: column; will-change: transform; }
+.strip-cell .art { filter: blur(2.6px); opacity: .92; }
 .strip-cell { width: var(--cell); height: var(--cell); padding: 4px; flex: none; }
 .strip-cell .art { width: 100%; height: 100%; display: block; object-fit: contain; }
 .strip-cell img.art:not(.panel) { padding: 7%; }
 .cell.scat-land .art { animation: scatland calc(.7s * var(--spd)) cubic-bezier(.2, 1.6, .4, 1); }
-@keyframes scatland { 0% { transform: scale(1.45); filter: brightness(2.4) drop-shadow(0 0 16px var(--teal-hi)); } 100% { transform: none; filter: drop-shadow(0 0 6px var(--teal-hi)); } }
+@keyframes scatland { 0% { transform: scale(1.4); } 100% { transform: none; } }
+.cell.scat-land::after { content: ""; position: absolute; inset: 0; border-radius: 16%; pointer-events: none; background: radial-gradient(circle, rgba(255,255,255,.9), rgba(95,227,210,.55) 40%, transparent 70%); animation: morphflash calc(.7s * var(--spd)) ease-out forwards; }
 /* tease: a framed column that glows while the reel slows down */
 .tease-col { position: absolute; z-index: 3; top: -1.5%; height: 103%; width: var(--cell); pointer-events: none; border-radius: 8px;
   --tc: var(--teal-hi); box-shadow: 0 0 0 3px var(--tc), 0 0 22px 6px var(--tc), inset 0 0 26px var(--tc); animation: teasepulse calc(.38s * var(--spd)) ease-in-out infinite alternate; }
 .tease-col.lv3 { --tc: var(--gold); }
 .tease-col.lv4 { --tc: #b98cf5; }
 .tease-col i { position: absolute; inset: 0; overflow: hidden; border-radius: 8px; }
-.tease-col i::before { content: ""; position: absolute; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--tc) 45%, transparent), transparent); animation: teasesweep calc(.6s * var(--spd)) linear infinite; }
+.tease-col i::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 40%; background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--tc) 45%, transparent), transparent); animation: teasesweep calc(.6s * var(--spd)) linear infinite; will-change: transform; }
 @keyframes teasepulse { from { opacity: .65; } to { opacity: 1; } }
-@keyframes teasesweep { from { top: 110%; } to { top: -50%; } }
+@keyframes teasesweep { from { transform: translateY(275%); } to { transform: translateY(-125%); } }
 .tease-col.done { animation: teasedone calc(.26s * var(--spd)) ease-out forwards; }
 @keyframes teasedone { to { opacity: 0; transform: scaleX(1.25); } }
-.grid.teasing .symbols .cell { filter: brightness(.6) saturate(.7); transition: filter .25s; }
-.grid.teasing .symbols .cell.scat-land, .grid.teasing .symbols .cell[data-code="S"], .grid.teasing .symbols .cell[data-code="S2"] { filter: none; }
+/* one dimming layer instead of a filter on every cell; scatters float above it */
+.tease-dim { position: absolute; inset: 0; z-index: 1; background: rgba(12, 16, 18, .42); opacity: 0; transition: opacity calc(.25s * var(--spd)) ease; pointer-events: none; will-change: opacity; }
+.tease-dim.on { opacity: 1; }
+.cell.is-scat, .reel-strip.teased { z-index: 2; }
 @media (prefers-reduced-motion: reduce) { .tease-col, .tease-col i::before { animation: none; } }
