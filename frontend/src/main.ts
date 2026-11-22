@@ -95,6 +95,36 @@ const st = {
 }
 const speed = () => (st.slam ? 0.15 : st.turbo ? 0.45 : 1)
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms * speed()))
+/** Motion tokens (same values as --ease-out / --ease-in-out in style.css). */
+const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)"
+/** Animate an element out, then remove it (reduced motion: a plain fade). Never blocks gameplay. */
+function exitAndRemove(el: HTMLElement, kf: Keyframe[], ms = 200): void {
+  el.style.pointerEvents = "none"
+  const frames = matchMedia("(prefers-reduced-motion: reduce)").matches ? [{ opacity: 1 }, { opacity: 0 }] : kf
+  el.animate(frames, { duration: ms * speed(), easing: EASE_OUT, fill: "forwards" }).finished.then(() => el.remove(), () => el.remove())
+}
+/** Roll a readout from its shown value to `to` (ease-out), optionally with a small bump. */
+const shownNum = new WeakMap<HTMLElement, number>()
+const rollRaf = new WeakMap<HTMLElement, number>()
+function rollNumber(el: HTMLElement, to: number, show: (n: number) => string, ms: number, bump = false): void {
+  const from = shownNum.get(el) ?? to
+  shownNum.set(el, to)
+  cancelAnimationFrame(rollRaf.get(el) ?? 0)
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches
+  if (from === to || ms <= 0 || reduce) {
+    fitReadout(el, show(to))
+    return
+  }
+  const t0 = performance.now()
+  const dur = ms * speed()
+  const step = () => {
+    const k = Math.min(1, (performance.now() - t0) / dur)
+    fitReadout(el, show(k < 1 ? from + (to - from) * (1 - Math.pow(1 - k, 3)) : to))
+    if (k < 1) rollRaf.set(el, requestAnimationFrame(step))
+  }
+  rollRaf.set(el, requestAnimationFrame(step))
+  if (bump) el.animate([{ transform: "scale(1)" }, { transform: "scale(1.14)", offset: 0.3 }, { transform: "scale(1)" }], { duration: 280 * speed(), easing: EASE_OUT })
+}
 const $ = <T extends HTMLElement = HTMLElement>(sel: string, root: ParentNode = document) => root.querySelector(sel) as T
 const h = (html: string) => {
   const d = document.createElement("div")
@@ -161,7 +191,7 @@ function buildDom() {
     <main class="stage">
       <section class="boss" aria-label="Leviathan health">
         <div class="boss-head"><span class="tier">BASE GAME</span><span class="tab">LEVIATHAN HP</span><span class="fs"></span></div>
-        <div class="hp"><div class="hp-fill" style="background-image:url(${asset("ui/hp_fill")})"></div><div class="hp-ticks"></div><img class="hp-frame" src="${asset("ui/hp_frame")}" alt="" draggable="false"><div class="hp-text">${BOSS_HP} / ${BOSS_HP}</div></div>
+        <div class="hp"><div class="hp-chan"><div class="hp-fill" style="background-image:url(${asset("ui/hp_fill")})"></div></div><div class="hp-ticks"></div><img class="hp-frame" src="${asset("ui/hp_frame")}" alt="" draggable="false"><div class="hp-text">${BOSS_HP} / ${BOSS_HP}</div></div>
         <div class="track"><span class="cap"></span>${LADDER.map(
           (k, i) => `<span class="node${i === 7 ? " final" : ""}" style="--at:${((i + 1) * STEP) / BOSS_HP}" title="${POWER_NAMES[k]} at ${(i + 1) * STEP}"><img src="${asset(`ui/pu/${i + 1}_${k}`)}" alt="" draggable="false"></span>`,
         ).join("")}</div>
@@ -233,7 +263,11 @@ function setSpots(grid: number[][], flash = true) {
         void el.offsetWidth
         el.classList.add("flash")
       }
-      $(`.lab[data-r="${r}"][data-c="${c}"]`).innerHTML = v > 1 ? `<span class="badge">×${v}</span>` : ""
+      const lab = $(`.lab[data-r="${r}"][data-c="${c}"]`)
+      lab.innerHTML = v > 1 ? `<span class="badge">×${v}</span>` : ""
+      if (flash && v > 1 && prev !== v && !prefersReduced())
+        lab.firstElementChild!.animate([{ transform: "scale(.6)", opacity: 0 }, { transform: "scale(1.2)", opacity: 1, offset: 0.55 }, { transform: "scale(1)" }],
+          { duration: 320 * speed(), easing: EASE_OUT })
     }
   st.spots = grid.map((x) => [...x])
 }
@@ -359,10 +393,15 @@ function slashLeviathan() {
 }
 
 // ================================================================ HUD helpers
+let bannerText = ""
 function banner(text: string) {
+  if (text === bannerText) return
+  bannerText = text
   const b = $(".banner")
   b.innerHTML = text ? `<span>${t(text)}</span>` : ""
   translateTree(b)
+  const span = b.firstElementChild as HTMLElement | null
+  if (span && !prefersReduced()) span.animate([{ transform: "translateY(35%)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 220 * speed(), easing: EASE_OUT })
 }
 function fitReadout(el: HTMLElement, text: string) {
   el.textContent = text
@@ -370,12 +409,24 @@ function fitReadout(el: HTMLElement, text: string) {
 }
 function setWinReadout(units: number) {
   units = Math.min(units, WINCAP * 100) // a round never shows more than the cap
+  const el = $(".winr .v")
+  const up = units > st.shownWin
   st.shownWin = units
-  fitReadout($(".winr .v"), units > 0 ? fmt(bookToApi(units)) : "–")
+  if (units <= 0) {
+    shownNum.set(el, 0)
+    cancelAnimationFrame(rollRaf.get(el) ?? 0)
+    fitReadout(el, "–")
+    return
+  }
+  // a win counts up (longer for bigger jumps, never over 450 ms) and bumps
+  const ms = up ? Math.min(450, 220 + 60 * Math.log10(1 + units / 100)) : 0
+  rollNumber(el, units, (n) => fmt(bookToApi(Math.round(n))), ms, up)
 }
 function setBalance(api: number) {
+  const el = $(".bal .v")
+  const delta = api - st.balance
   st.balance = api
-  fitReadout($(".bal .v"), fmt(api))
+  rollNumber(el, api, (n) => fmt(Math.round(n)), delta === 0 ? 0 : delta > 0 ? 400 : 200, delta > 0)
 }
 function updateBetReadout() {
   st.bet = st.levels[st.betIdx] ?? API
@@ -425,13 +476,19 @@ function setTierUi(tier: string | null, fs = 0) {
   document.body.classList.remove(...Object.values(TIER_CLASS))
   if (tier) document.body.classList.add(TIER_CLASS[tier]!)
   $(".boss-head .tier").textContent = tier ? TIER[tier]!.name.toUpperCase() : st.ante === "hunt" ? "LEVIATHAN HUNT" : st.ante === "deep_hunt" ? "TRENCH HUNT" : "BASE GAME"
-  $(".boss-head .fs").textContent = tier ? `${t("FREE SPINS")} ${fs} / ${FREE_SPINS}` : ""
+  const fsEl = $(".boss-head .fs")
+  const fsText = tier ? `${t("FREE SPINS")} ${fs} / ${FREE_SPINS}` : ""
+  if (fsEl.textContent !== fsText) {
+    fsEl.textContent = fsText
+    if (fsText && !prefersReduced()) fsEl.animate([{ transform: "scale(1.25)", opacity: 0.4 }, { transform: "none", opacity: 1 }], { duration: 260 * speed(), easing: EASE_OUT })
+  }
 }
 function toast(msg: string, err = false) {
   document.querySelector(".toast")?.remove()
   const el = h(`<div class="toast${err ? " err" : ""}" role="status">${t(msg)}</div>`)
   document.body.append(el)
-  setTimeout(() => el.remove(), 2600)
+  if (!prefersReduced()) el.animate([{ translate: "0 -10px", opacity: 0 }, { translate: "0 0", opacity: 1 }], { duration: 200, easing: EASE_OUT })
+  setTimeout(() => exitAndRemove(el, [{ opacity: 1 }, { opacity: 0, translate: "0 -6px" }], 180), 2600)
 }
 function syncButtons() {
   const busy = st.busy
@@ -465,7 +522,8 @@ function overlay(html: string, ms: number): Promise<void> {
     const finish = () => {
       if (done) return
       done = true
-      el.remove()
+      el.querySelector<HTMLElement>(".card")?.animate([{ transform: "none" }, { transform: "scale(.96)" }], { duration: 220 * speed(), easing: EASE_OUT, fill: "forwards" })
+      exitAndRemove(el, [{ opacity: 1 }, { opacity: 0 }], 220)
       resolve()
     }
     el.addEventListener("pointerdown", finish)
@@ -698,7 +756,7 @@ async function depthWheel(mode: string, tier: string | null): Promise<void> {
   }, 250)
   await Promise.race([hold, tapped])
   removeEventListener("keydown", onKey, true)
-  el.remove()
+  exitAndRemove(el, [{ opacity: 1 }, { opacity: 0 }], 240)
 }
 
 /** Hero switches to the victory pose for big-win and feature-end celebrations. */
@@ -959,7 +1017,15 @@ async function evReveal(e: BookEvent) {
 async function evWinInfo(e: BookEvent) {
   const wins = e.wins as { symbol: Code; clusterSize: number; win: number; positions: Pos[]; meta: { clusterMult: number; overlay: Pos } }[]
   for (const w of wins) {
-    for (const p of w.positions) cells[p.reel]![p.row]?.classList.add("win")
+    const o0 = w.meta.overlay
+    for (const p of w.positions) {
+      const cell = cells[p.reel]![p.row]
+      cell?.classList.add("win")
+      const art = cell?.querySelector<HTMLElement>(".art")
+      if (art && !prefersReduced())
+        art.animate([{ transform: "scale(1)" }, { transform: "scale(1.12)", offset: 0.4 }, { transform: "scale(1)" }],
+          { duration: 320 * speed(), delay: Math.hypot(p.reel - o0.reel, p.row - o0.row) * 35 * speed(), easing: EASE_OUT })
+    }
     const o = w.meta.overlay
     const pop = h(`<div class="win-pop" style="left:${((o.reel + 0.5) * 100) / N}%;top:${((o.row + 0.5) * 100) / N}%">${fmt(bookToApi(w.win))}</div>`)
     $(".grid").append(pop)
@@ -1278,8 +1344,10 @@ function modal(html: string, cls = ""): HTMLElement {
   st.modal = true
   const wrap = h(`<div class="modal-wrap"><div class="sheet ${cls}" role="dialog" aria-modal="true"><button class="x-close" aria-label="Close">${icon(UI_ICONS.close)}</button>${html}</div></div>`)
   const close = () => {
-    wrap.remove()
-    st.modal = !!document.querySelector(".modal-wrap")
+    wrap.classList.add("closing")
+    st.modal = !!document.querySelector(".modal-wrap:not(.closing)")
+    wrap.querySelector<HTMLElement>(".sheet")?.animate([{ transform: "none" }, { transform: "translateY(8px) scale(.98)" }], { duration: 180, easing: EASE_OUT, fill: "forwards" })
+    exitAndRemove(wrap, [{ opacity: 1 }, { opacity: 0 }], 180)
   }
   wrap.addEventListener("click", (e) => {
     if (e.target === wrap || (e.target as HTMLElement).closest(".x-close")) close()
@@ -1645,7 +1713,7 @@ function showIntro(): Promise<void> {
       el.classList.add("leaving")
       setTimeout(() => {
         el.remove()
-        st.modal = !!document.querySelector(".modal-wrap")
+        st.modal = !!document.querySelector(".modal-wrap:not(.closing)")
         resolve()
       }, prefersReduced() ? 0 : 420)
     }
@@ -1703,7 +1771,7 @@ function showShowdown(): Promise<void> {
       el.classList.add("out")
       setTimeout(() => {
         el.classList.add("reveal")
-        st.modal = !!document.querySelector(".modal-wrap")
+        st.modal = !!document.querySelector(".modal-wrap:not(.closing)")
         setTimeout(() => {
           el.remove()
           resolve()

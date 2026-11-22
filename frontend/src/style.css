@@ -1,4 +1,7 @@
 :root {
+  /* motion tokens: strong ease-out for things entering/leaving, ease-in-out for on-screen moves */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ink: #171b1d;
   --ink-2: #222a2d;
   --paper: #dcdfd7;
@@ -213,7 +216,7 @@ button:disabled { cursor: not-allowed; opacity: .45; filter: grayscale(.5); }
   /* body + head layers together form the full silhouette */
   -webkit-mask-image: var(--m); mask-image: var(--m); -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
   -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-composite: source-over; mask-composite: add; }
-.leviathan.slain .breathe { animation: none; transition: transform 1.6s ease-in, filter 1.6s, opacity 1.6s; transform: translateY(18%) rotate(6deg); filter: grayscale(1); opacity: .35; }
+.leviathan.slain .breathe { animation: none; transition: transform 1.6s var(--ease-in-out), filter 1.6s, opacity 1.6s; transform: translateY(18%) rotate(6deg); filter: grayscale(1); opacity: .35; }
 
 /* ---------------------------------------------------------------- logo */
 .logo { position: fixed; z-index: 5; top: 10px; left: 14px; width: clamp(150px, 16vw, 260px); }
@@ -233,7 +236,9 @@ button:disabled { cursor: not-allowed; opacity: .45; filter: grayscale(.5); }
 .boss-head .tab { font-family: var(--f-mark); background: var(--ink); color: var(--text); padding: 3px 14px 1px; border-radius: 8px 8px 0 0; letter-spacing: .08em; }
 .hp { position: relative; height: clamp(30px, calc(var(--g) * .06), 50px); }
 .hp::before { content: ""; position: absolute; inset: 30% 4% 18% 4%; border-radius: 999px; background: rgba(23, 27, 29, .85); }
-.hp-fill { --dmg: 0%; position: absolute; left: 4%; right: 4%; top: 30%; bottom: 18%; border-radius: 999px; background-size: 100% 100%; clip-path: inset(0 0 0 var(--dmg) round 999px); transition: clip-path .45s cubic-bezier(.3, 1.2, .5, 1); }
+/* the channel clips; the fill slides right as damage lands (transform only, composited) */
+.hp-chan { position: absolute; left: 4%; right: 4%; top: 30%; bottom: 18%; border-radius: 999px; overflow: hidden; }
+.hp-fill { --dmg: 0%; position: absolute; inset: 0; background-size: 100% 100%; transform: translateX(var(--dmg)); transition: transform .45s cubic-bezier(.3, 1.2, .5, 1); will-change: transform; }
 .hp-ticks { position: absolute; inset: 30% 4% 18% 4%; background: repeating-linear-gradient(90deg, transparent 0 calc(12.5% - 2px), rgba(23,27,29,.55) calc(12.5% - 2px) 12.5%); }
 .hp-frame { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; }
 .hp-text { z-index: 1; padding-top: 4%; }
@@ -332,7 +337,7 @@ img.grid-frame { inset: -4.5%; width: 109%; height: 109%; object-fit: fill; }
 .menu-btn { grid-area: menu; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--ink-2); border: 2px solid #000; }
 .read { display: flex; flex-direction: column; align-items: center; min-width: 0; }
 .read .k { font: 11px var(--f-lil); letter-spacing: .14em; color: var(--teal-hi); }
-.read .v { font: clamp(14px, 1.35vw, 20px) var(--f-lil); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.read .v { display: inline-block; transform-origin: 50% 60%; font: clamp(14px, 1.35vw, 20px) var(--f-lil); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .read.bal { grid-area: bal; }
 .read.winr { grid-area: win; background: #0c0f10; border-radius: 10px; padding: 4px 8px; }
 .read.winr .v { color: var(--gold); }
@@ -374,8 +379,8 @@ img.grid-frame { inset: -4.5%; width: 109%; height: 109%; object-fit: fill; }
 .overlay p { margin: 10px 0 0; font-family: var(--f-lil); font-size: clamp(16px, 2.2vw, 26px); text-shadow: 0 2px 0 var(--ink); }
 .overlay .hint { font-family: var(--f-body); font-size: 13px; opacity: .7; margin-top: 16px; }
 
-.modal-wrap { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 14px; background: rgba(10, 13, 14, .72); backdrop-filter: blur(6px); }
-.sheet { position: relative; width: min(980px, 100%); max-height: 92vh; overflow: auto; background: var(--paper); background-image: var(--noise); color: var(--ink); border-radius: 14px; border: 3px solid var(--ink); padding: 22px 26px 26px; }
+.modal-wrap { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 14px; background: rgba(10, 13, 14, .84); animation: fadein .2s var(--ease-out); }
+.sheet { animation: sheet-in .26s var(--ease-out); position: relative; width: min(980px, 100%); max-height: 92vh; overflow: auto; background: var(--paper); background-image: var(--noise); color: var(--ink); border-radius: 14px; border: 3px solid var(--ink); padding: 22px 26px 26px; }
 .sheet.small { width: min(440px, 100%); text-align: center; }
 .sheet h2 { font-family: var(--f-mark); font-size: 30px; margin: 0 0 4px; }
 .sheet h3 { font-family: var(--f-mark); font-size: 20px; margin: 22px 0 6px; }
@@ -406,7 +411,7 @@ table.modes th { font-family: var(--f-lil); font-weight: 400; }
 /* ---------------------------------------------------------------- buy menu */
 .buy-grid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 34px 14px; margin-top: 22px; }
 .bcard { grid-column: span 2; min-width: 0; position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 14px 14px; background: center / 100% 100% no-repeat; transition: transform .15s; }
-.bcard:hover { transform: translateY(-3px); }
+@media (hover: hover) and (pointer: fine) { .bcard:hover { transform: translateY(-3px); } }
 .bcard.r2 { grid-column: 2 / span 2; }
 .bcard::before, .bcard::after { content: none; }
 .bcard::before { left: 4px; top: 4px; border-right: 0; border-bottom: 0; }
@@ -577,7 +582,7 @@ table.modes th { font-family: var(--f-lil); font-weight: 400; }
 .wheel-spin { position: relative; display: grid; place-items: center; width: clamp(84px, 11vh, 120px); aspect-ratio: 1; margin-top: -4px; padding: 0; border: 0; background: none; cursor: pointer; filter: drop-shadow(0 4px 0 #000); transition: transform .15s, opacity .25s; }
 .wheel-spin img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .wheel-spin span { position: relative; margin-top: 64%; font-family: var(--f-mark); font-size: clamp(15px, 2vh, 20px); letter-spacing: .08em; color: var(--text); text-shadow: 0 2px 0 var(--ink), 0 0 8px var(--ink); }
-.wheel-spin:hover { transform: scale(1.06); }
+@media (hover: hover) and (pointer: fine) { .wheel-spin:hover { transform: scale(1.06); } }
 .wheel-spin:active { transform: scale(.94); }
 .wheel-spin:focus-visible { outline: 3px solid var(--teal-hi); outline-offset: 4px; border-radius: 50%; }
 .wheel-spin::after { content: ""; position: absolute; inset: 4%; border-radius: 50%; pointer-events: none; box-shadow: 0 0 18px 6px var(--teal-hi); opacity: 0; }
@@ -653,8 +658,8 @@ table.modes th { font-family: var(--f-lil); font-weight: 400; }
 @keyframes intro-go { 50% { opacity: .55; transform: scale(.97); } }
 .intro-skip { display: flex; align-items: center; gap: 8px; font-family: var(--f-body); font-size: 13px; color: var(--text); opacity: .75; cursor: pointer; text-shadow: 0 1px 2px #000; }
 .intro-skip input { width: 16px; height: 16px; accent-color: var(--teal); cursor: pointer; }
-.intro.leaving { animation: intro-out .42s ease-in forwards; pointer-events: none; }
-.intro.leaving .intro-card { animation: intro-card-out .36s ease-in forwards; }
+.intro.leaving { animation: intro-out .42s var(--ease-out) forwards; pointer-events: none; }
+.intro.leaving .intro-card { animation: intro-card-out .36s var(--ease-out) forwards; }
 @keyframes intro-out { to { opacity: 0; } }
 @keyframes intro-card-out { to { opacity: 0; transform: translateY(-24px) scale(.96); } }
 /* portrait phones: cards become compact rows (art left, text right) */
@@ -726,7 +731,7 @@ table.modes th { font-family: var(--f-lil); font-weight: 400; }
 .slammed { animation: vs-shake .38s ease-out .12s; }
 @keyframes vs-shake { 20% { transform: translate(-10px, 6px); } 40% { transform: translate(9px, -6px); } 60% { transform: translate(-6px, 3px); } 80% { transform: translate(3px, -2px); } }
 /* exit: fade through black into the slot */
-.vs-black { position: absolute; inset: 0; background: #050708; opacity: 0; pointer-events: none; transition: opacity .38s ease-in; }
+.vs-black { position: absolute; inset: 0; background: #050708; opacity: 0; pointer-events: none; transition: opacity .38s var(--ease-out); }
 .vs.out .vs-black { opacity: 1; }
 .vs.reveal { transition: opacity .48s ease-out; opacity: 0; }
 .vs.reveal > :not(.vs-black) { visibility: hidden; }
@@ -752,7 +757,7 @@ table.modes th { font-family: var(--f-lil); font-weight: 400; }
 
 /* ---------------------------------------------------------------- power-up callout (main.ts announcePowerUp) */
 .pu-call { --dur: 1250ms; position: absolute; z-index: 6; left: 50%; top: 50%; width: 92%; transform: translate(-50%, -50%);
-  display: grid; justify-items: center; pointer-events: none; animation: pu-out var(--dur) ease-in forwards; }
+  display: grid; justify-items: center; pointer-events: none; animation: pu-out var(--dur) var(--ease-out) forwards; }
 @keyframes pu-out { 0%, 82% { opacity: 1; } 100% { opacity: 0; } }
 .pu-ring { position: absolute; top: 50%; left: 50%; width: 62%; transform: translate(-50%, -64%); opacity: 0;
   animation: pu-ring calc(var(--dur) * .7) cubic-bezier(.2, .9, .3, 1) forwards; }
@@ -807,3 +812,14 @@ table.modes th { font-family: var(--f-lil); font-weight: 400; }
 .spear-trail { position: absolute; right: 70%; top: 50%; width: 160%; height: 10px; transform: translateY(-50%); border-radius: 999px;
   background: linear-gradient(90deg, transparent, rgba(214, 255, 249, .15) 40%, rgba(214, 255, 249, .85)); filter: blur(1.5px); }
 .spear.stuck .spear-trail { opacity: 0; transition: opacity .15s; }
+
+/* ---------------------------------------------------------------- polish pass (reviewer: motion) */
+@keyframes sheet-in { from { opacity: 0; transform: translateY(12px) scale(.97); } }
+/* press feedback on every control */
+.btn, .round, .spin-btn, .menu-btn, .buy-badge, .x-close { transition: transform 160ms var(--ease-out); }
+.btn:active:not(:disabled), .round:active:not(:disabled), .menu-btn:active, .x-close:active, .buy-badge:active { transform: scale(.97); }
+.spin-btn:active:not(:disabled) { transform: scale(.94); }
+@media (prefers-reduced-motion: reduce) {
+  .sheet, .modal-wrap { animation-duration: .01s; }
+  .btn:active, .round:active, .menu-btn:active, .buy-badge:active, .spin-btn:active { transform: none; }
+}
