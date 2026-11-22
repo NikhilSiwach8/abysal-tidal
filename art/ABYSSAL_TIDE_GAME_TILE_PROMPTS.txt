@@ -1,0 +1,157 @@
+=====================================================================
+ ABYSSAL TIDE — LOBBY GAME TILES, 4:3 AND 16:9 (copy-paste ready)
+ Companion to ABYSSAL_TIDE_ASSET_PROMPTS.txt.
+=====================================================================
+
+What these are
+--------------
+The thumbnails players see in the casino lobby. They must read at a glance at
+small size: one clear scene, strong contrast, the logo large, nothing busy.
+
+   T1  4:3   (e.g. 1600x1200)   the harpooner and the Leviathan face to face
+   T2  16:9  (e.g. 1920x1080)   the same moment, wider, more sea and sky
+
+Each comes in two passes:
+   A  ART ONLY (no text): generate this. The logo is added afterwards from
+      our own logo file, so the lettering is always spelled and styled right.
+   B  WITH LOGO (optional): only if you want the tool to place the logo itself.
+
+Do not generate the words "ABYSSAL TIDE" with an image tool for the final tile:
+image tools misspell. Send me the art-only image and I will place our real logo
+(art/generated/lettering/logo_abyssal_tide.png) on it at the correct size.
+
+
+---------------------------------------------------------------------
+ HOW TO KEEP IT CONSISTENT (read once)
+---------------------------------------------------------------------
+1. Attach your STYLE ANCHOR (prompt 0.1) as the style reference.
+     Midjourney: --sref <anchor-url> --sw 200
+     GPT-Image / Ideogram / Leonardo / Flux: attach it as a style reference.
+2. Attach the hero reference sheet and the Leviathan reference sheet as
+   character references (Midjourney: --cref <url> --cw 100), so both look
+   exactly like they do in the game.
+3. Keep one seed for both tiles, so T1 and T2 look like one campaign.
+4. Leave the LOGO ZONE empty and calm (described in each prompt). Busy detail
+   behind the logo makes it unreadable at thumbnail size.
+5. Colour rule (same as the game): 90% greyscale ink and fog, with only teal
+   #2BB3A3 / #5FE3D2 accents (hero's eyes and scarf, Leviathan's gills, the
+   water) and a little ember coral #E8553E (blood, embers). No other colours.
+
+Palette (exact)
+   Ink black #171B1D   Ink grey #222A2D   Fog paper #DCDFD7
+   Abyss teal #2BB3A3  Teal glow #5FE3D2  Ember coral #E8553E   Gold #FFD36B
+
+NEGATIVE (paste into the negative field, or append "Avoid: ..." for tools
+without one):
+text, letters, words, logo, watermark, signature, UI, slot reels, symbols,
+coins, frame, border, photorealistic, 3D render, glossy CGI, oversaturated,
+rainbow colours, neon, lens flare, blurry, low resolution, extra limbs,
+extra fingers, deformed hands, duplicate characters, cropped heads, samurai,
+ninja, oni mask, katana, bamboo, torii gate, pagoda, cherry blossoms.
+
+
+---------------------------------------------------------------------
+ SHARED STYLE BLOCK (already pasted inside each prompt below)
+---------------------------------------------------------------------
+Dark fantasy anime illustration, semi-realistic cel shading with clean
+confident black ink linework of varied weight, Japanese sumi-e ink-wash
+painting influence, desaturated greyscale of ink black #171B1D and fog grey
+#DCDFD7 with teal #2BB3A3 accents only, soft diffused light from the top left,
+misty deep-sea atmosphere, subtle paper grain, high detail, crisp edges,
+professional slot game key art.
+
+
+---------------------------------------------------------------------
+ T1-A  4:3 TILE — ART ONLY  (generate this)
+---------------------------------------------------------------------
+Settings: 4:3, 1600x1200 (or the largest 4:3 your tool allows).
+Save as: art/generated/marketing/tile_4x3_art.png
+Prompt:
+Slot game key art in a 4:3 frame, a confrontation in a sunken deep-sea world:
+on the left, the hooded harpooner in a dark weathered coat and teal scarf,
+three-quarter view, braced to throw a long barbed whaling harpoon, eyes
+glowing teal #5FE3D2 under the hood, shown from the knees up and filling the
+left third; on the right, the giant sea serpent Leviathan rearing out of the
+water, coiled body of grey-green scales and pale belly plates, horned head
+lunging toward the hunter with jaws open, glowing teal gill slits, filling the
+right half; between them a huge curling wave crest of white foam and teal
+water arcs across the frame; behind them misty silhouettes of sunken ship
+masts and stone sea-stacks fading into fog; drifting bubbles and a few ember
+coral #E8553E flecks. The upper middle third is kept calm, misty and empty for
+a logo. Strong silhouettes, high contrast between the dark figures and the
+pale fog, readable at thumbnail size. Dark fantasy anime illustration,
+semi-realistic cel shading with clean confident black ink linework of varied
+weight, Japanese sumi-e ink-wash painting influence, desaturated greyscale of
+ink black #171B1D and fog grey #DCDFD7 with teal #2BB3A3 accents only, soft
+diffused light from the top left, misty deep-sea atmosphere, subtle paper
+grain, high detail, crisp edges, professional slot game key art.
+Avoid: text, letters, logo, UI, slot reels, frame, photorealistic, 3D render, extra limbs.
+
+---------------------------------------------------------------------
+ T2-A  16:9 TILE — ART ONLY  (generate this)
+---------------------------------------------------------------------
+Settings: 16:9, 1920x1080 (or larger, e.g. 2560x1440).
+Save as: art/generated/marketing/tile_16x9_art.png
+Prompt:
+Wide slot game key art in a 16:9 frame, a confrontation in a sunken deep-sea
+world: on the far left, the hooded harpooner in a dark weathered coat and teal
+scarf standing on a barnacled rock, three-quarter view, drawing back a long
+barbed whaling harpoon to throw, eyes glowing teal #5FE3D2 under the hood,
+shown from the thighs up and filling the left quarter; on the far right, the
+giant sea serpent Leviathan rearing high out of the water, coiled body of
+grey-green scales and pale belly plates, horned head turned toward the hunter
+with jaws open and teeth bared, glowing teal gill slits, filling the right
+third; across the middle a sweeping curl of white foam and teal water like a
+brush stroke, with shafts of pale light falling from the surface above; far
+behind, misty silhouettes of a wrecked ship, sea-stacks and swaying kelp
+fading into fog; drifting bubbles and a few ember coral #E8553E flecks. The
+centre of the frame, from the top down to just below the middle, is kept calm,
+misty and empty for a large logo. Strong silhouettes, high contrast between
+the dark figures and the pale fog, readable at thumbnail size. Dark fantasy
+anime illustration, semi-realistic cel shading with clean confident black ink
+linework of varied weight, Japanese sumi-e ink-wash painting influence,
+desaturated greyscale of ink black #171B1D and fog grey #DCDFD7 with teal
+#2BB3A3 accents only, soft diffused light from the top left, misty deep-sea
+atmosphere, subtle paper grain, high detail, crisp edges, professional slot
+game key art.
+Avoid: text, letters, logo, UI, slot reels, frame, photorealistic, 3D render, extra limbs.
+
+
+---------------------------------------------------------------------
+ OPTIONAL: WITH THE LOGO GENERATED IN  (Ideogram or GPT-Image only)
+---------------------------------------------------------------------
+Use only if you want a quick all-in-one version. Attach our logo image as a
+reference so the lettering style matches, and generate several variations to
+get the spelling right. For the final lobby tile, the art-only version plus our
+real logo is safer.
+
+T1-B  4:3   Take the T1-A prompt and replace the sentence starting "The upper
+            middle third is kept calm" with:
+  At the top centre, the exact words "ABYSSAL" on the first line and "TIDE" on
+  the second, in aggressive hand-painted white dry-brush calligraphy with a thick
+  black ink outline and a teal #2BB3A3 brush swash behind the letters, large,
+  about half the width of the image.
+
+T2-B  16:9  Take the T2-A prompt and replace the sentence starting "The centre
+            of the frame" with:
+  In the upper centre, the exact words "ABYSSAL" on the first line and "TIDE" on
+  the second, in aggressive hand-painted white dry-brush calligraphy with a thick
+  black ink outline and a teal #2BB3A3 brush swash behind the letters, large,
+  about a third of the width of the image.
+
+  Then remove "text, letters, logo" from the Avoid line.
+
+
+---------------------------------------------------------------------
+ WHAT I DO WITH THEM
+---------------------------------------------------------------------
+Send T1-A and T2-A (art only). I will:
+  * place the real ABYSSAL TIDE logo in the logo zone, with a soft dark glow
+    behind it so it reads on any lobby background;
+  * export the exact sizes you need (tell me the dimensions Stake asks for if
+    they differ from 1600x1200 and 1920x1080), as high-quality PNG/JPG/WebP;
+  * check them at thumbnail size (about 300 px wide) so the characters and the
+    logo still read.
+
+  [ ] tile_4x3_art.png    4:3, no text, calm logo zone in the upper middle
+  [ ] tile_16x9_art.png   16:9, no text, calm logo zone in the centre
