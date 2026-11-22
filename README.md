@@ -149,6 +149,31 @@ commands in `video/README.md`.
 per cell. Painted overlay titles are used except in social-casino sessions, which show
 translated text because several titles contain restricted words ("WIN").
 
+## Audio
+
+All sound is original and rendered from code: `tools/sound_design.py` (numpy/scipy; FM bells,
+filtered noise, sine-drop drums, dark convolution reverb, one D-minor palette) writes
+`art/audio/wav/` + `art/audio/manifest.json`, and `tools/encode_audio.sh` encodes the game's MP3s
+into `frontend/src/assets/audio/` (2.4 MB: mono effects 96 kbps, stereo music 128 kbps).
+
+| Sound | When |
+| --- | --- |
+| `amb_deep` (24 s loop) | ambience bed, always under the game (music bus toggle) |
+| `music_base` (75 bpm, 38.4 s loop) / `music_bonus` (105 bpm, 36.6 s loop) | base game / free spins, 1.4 s crossfade |
+| `spin`, `reel_stop` (pitch steps up per reel), `fall` (tumble refill, lighter) | reels |
+| `tease_loop` (heartbeat, faster per scatter) | reels holding back after 2+ scatters |
+| `scatter_land` (a whole tone higher per scatter), `scatter_trigger` | scatters, bonus won |
+| `win_1..3`, `tumble_pop`, `mult_up` | cluster wins by size, bursts, spot doubling |
+| `lev_hit`, `powerup`, `lev_roar` | damage, power-up every 25, Leviathan rises |
+| `feature_intro`, `feature_end`, `bigwin_loop` + `bigwin_end` | tier start, small feature total, big-win count-up |
+| `wheel_tick` (one per slice edge), `wheel_win` / `wheel_miss`, `ui_buy`, `ui_click`, `slam` | wheel, menus, showdown |
+
+Engine (`src/audio.ts`): master (gentle compressor) -> music (ducked under stingers), ambience, sfx
+buses; loops use native looping between 0.15 s and 0.15 s + loop length (MP3-padding safe; every
+loop is verified sample-exact). Sound and music toggles are remembered; audio unlocks on the first
+tap/key and suspends while the tab is hidden; a synthesised fallback covers any sound not yet decoded.
+Loudness: music about -20 LUFS, ambience -31, effects -12 to -19 before the bus mix.
+
 ## Upload
 
 * Math: `math-sdk/games/abyssal_tide/library/publish_files/*`

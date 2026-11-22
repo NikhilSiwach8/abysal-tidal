@@ -229,6 +229,7 @@ function setSpots(grid: number[][], flash = true) {
       const lvl = Math.round(Math.log2(Math.max(1, v)))
       el.className = `spot${lvl ? ` l${Math.min(lvl, 6)}` : ""}`
       if (flash && prev !== undefined && prev !== v) {
+        if (v > prev) sfx.mult()
         void el.offsetWidth
         el.classList.add("flash")
       }
@@ -547,7 +548,30 @@ async function depthWheel(mode: string, tier: string | null): Promise<void> {
     sfx.spin()
     const anim = rot.animate([{ transform: "rotate(0deg)" }, { transform: `rotate(${finalDeg}deg)` }],
       { duration: ms, easing: "cubic-bezier(.12,.62,.08,1)", fill: "forwards" })
+    // a tick each time a slice edge passes the pointer (pitch rises with speed)
+    const edges = slices.reduce<number[]>((a, s0) => [...a, (a.at(-1) ?? 0) + s0[1] * 3.6], [])
+    let lastEdges = 0
+    let lastT = performance.now()
+    let ticking = true
+    const tickLoop = () => {
+      if (!ticking) return
+      const m = new DOMMatrix(getComputedStyle(rot).transform)
+      const deg = (-Math.atan2(m.b, m.a) * 180) / Math.PI
+      const progress = anim.effect?.getComputedTiming().progress ?? 1
+      const total = progress * Math.abs(finalDeg)
+      const passed = Math.floor(total / 360) * edges.length + edges.filter((e) => e <= (total % 360)).length
+      const now = performance.now()
+      if (passed > lastEdges && now - lastT > 28) {
+        sfx.wheelTick(Math.min(1.25, 0.8 + 6 / Math.max(6, now - lastT)))
+        lastT = now
+      }
+      lastEdges = passed
+      void deg
+      requestAnimationFrame(tickLoop)
+    }
+    requestAnimationFrame(tickLoop)
     await Promise.race([anim.finished.catch(() => {}), skipped])
+    ticking = false
     anim.finish()
   } else {
     rot.style.transform = `rotate(${finalDeg}deg)`
@@ -556,8 +580,8 @@ async function depthWheel(mode: string, tier: string | null): Promise<void> {
   rot.querySelectorAll(`[data-i="${pick[1]}"]`).forEach((n) => n.classList.add("hit"))
   el.classList.add(tier ? "landed" : "landed-calm")
   const res = el.querySelector(".wheel-result")!
+  sfx.wheelLand(!!tier)
   if (tier) {
-    sfx.pearl()
     res.innerHTML = `${paintedTitle(TIER[tier]!.name.toUpperCase(), "wheel-res-title", WHEEL_FILL[tier])}<span>${t("10 free spins unlocked")}</span>`
   } else {
     res.innerHTML = `${paintedTitle("STILL WATER", "wheel-res-title")}<span>${t("No bonus this time — the spin plays on")}</span>`
@@ -582,6 +606,16 @@ function setHeroCelebrating(on: boolean) {
   document.querySelector(".hero")?.classList.toggle("celebrating", on)
 }
 
+/** Camera shake on the play area for the heaviest hits (composited transform; skipped for reduced motion). */
+function shake(strength = 1) {
+  if (prefersReduced()) return
+  const k = 7 * strength
+  document.querySelector<HTMLElement>(".stage")?.animate([
+    { transform: "none" }, { transform: `translate(${-k}px, ${k * 0.6}px)` }, { transform: `translate(${k * 0.8}px, ${-k * 0.5}px)` },
+    { transform: `translate(${-k * 0.5}px, ${k * 0.3}px)` }, { transform: `translate(${k * 0.25}px, 0)` }, { transform: "none" },
+  ], { duration: 420 * speed(), easing: "ease-out" })
+}
+
 async function countUpOverlay(title: string, units: number, ms: number) {
   setHeroCelebrating(true)
   try {
@@ -594,18 +628,30 @@ async function countUpOverlay(title: string, units: number, ms: number) {
 async function countUpOverlayInner(title: string, units: number, ms: number) {
   const amountId = `amt-${Math.random().toString(36).slice(2)}`
   const p = overlay(`${heading(title)}<div class="amount" id="${amountId}">${fmt(0)}</div>`, ms)
-  sfx.bigWin()
+  // big wins count up over a shimmer and land on a stinger; a small feature total gets a quiet chime
+  const quiet = title === "FEATURE COMPLETE"
+  if (quiet) sfx.featureEnd()
+  else sfx.bigWinStart()
+  let landed = quiet
+  const land = () => {
+    if (landed) return
+    landed = true
+    sfx.bigWinEnd()
+    shake(1)
+  }
   const start = performance.now()
   const dur = ms * 0.6 * speed()
   const tick = () => {
     const el = document.getElementById(amountId)
-    if (!el) return
+    if (!el) return land()
     const k = Math.min(1, (performance.now() - start) / dur)
     el.textContent = fmt(bookToApi(units * (1 - Math.pow(1 - k, 3))))
     if (k < 1) requestAnimationFrame(tick)
+    else land()
   }
   requestAnimationFrame(tick)
   await p
+  land()
 }
 
 const bigWinLabel = (x: number) => BIG_WINS.find(([min]) => x >= min)?.[1] ?? null
@@ -758,8 +804,7 @@ async function evReveal(e: BookEvent) {
       strip.el.classList.add("teased") // stays bright above the dimming layer
       const total = (teased ? REEL.teaseNext : REEL.tease) * speed()
       const t0 = performance.now()
-      const beat = setInterval(() => sfx.tease(scatters), 380 * speed())
-      sfx.tease(scatters)
+      sfx.teaseStart(scatters)
       // the reel visibly loses speed while it teases (eased every frame, no steps)
       let raf = 0
       const slow = () => {
@@ -769,7 +814,6 @@ async function evReveal(e: BookEvent) {
       }
       raf = requestAnimationFrame(slow)
       await waitSlam(teased ? REEL.teaseNext : REEL.tease)
-      clearInterval(beat)
       cancelAnimationFrame(raf)
       teased++
     } else if (r > 0) {
@@ -806,9 +850,9 @@ async function evReveal(e: BookEvent) {
     }
   }
   setTeaseDim(false)
+  sfx.teaseStop()
   await sleep(REEL.stop + (N - 1) * REEL.rowStagger + 40)
   document.querySelectorAll(".cell.scat-land").forEach((el) => el.classList.remove("scat-land"))
-  if (scatters >= 3) sfx.scatter(scatters)
 }
 
 async function evWinInfo(e: BookEvent) {
@@ -879,6 +923,8 @@ async function evFeature(e: BookEvent) {
     const c0 = Math.min(...positions.map((p) => p.row))
     st.mega = { r0, c0, n: info.size as number }
     setDamage(BOSS_HP)
+    sfx.roar()
+    shake(1.4)
     await overlay(`${heading("THE LEVIATHAN RISES")}<p>A ${info.size}×${info.size} Leviathan surfaces</p>`, 1800)
   }
   for (const p of positions) cells[p.reel]![p.row]?.classList.add("affect")
@@ -963,7 +1009,7 @@ async function evTumble(e: BookEvent) {
         { duration: dur, delay, easing: dropEasing(Math.min(0.07, 0.11 / m.rows), 0.08, 0.72), fill: "backwards" })
       squashAt(m.el, delay + dur * 0.72, Math.min(1.3, 0.6 + m.rows * 0.2))
     }
-    setTimeout(() => sfx.land(r), (r * 26 + 220) * speed())
+    setTimeout(() => sfx.fall(r), (r * 26 + 220) * speed())
   }
   await sleep(longest / speed() + 30)
 }
@@ -1000,6 +1046,7 @@ async function playEvents(events: BookEvent[], opts: { mode: string }) {
       case "freeSpinTrigger":
         for (const p of e.positions as Pos[]) cells[p.reel]![p.row]?.classList.add("scat")
         sfx.scatter(5)
+        shake(1.1)
         banner("THE COMPASS POINTS DOWN")
         await sleep(900)
         break
@@ -1008,7 +1055,8 @@ async function playEvents(events: BookEvent[], opts: { mode: string }) {
         feature = true
         setTierUi(tier, 0)
         setDamage(0)
-        sfx.pearl()
+        sfx.featureIntro()
+        sfx.music("bonus")
         await overlay(
           `${heading(TIER[tier]!.name.toUpperCase())}<p>${FREE_SPINS} FREE SPINS · every spot starts at ${TIER[tier]!.start}×</p>`,
           3000,
@@ -1026,6 +1074,7 @@ async function playEvents(events: BookEvent[], opts: { mode: string }) {
         break
       }
       case "wincap":
+        sfx.bigWinEnd()
         setHeroCelebrating(true)
         await overlay(`${heading("MAX WIN")}<div class="amount">${fmt(bookToApi(WINCAP * 100))}</div><p>${WINCAP.toLocaleString("en-US")}× reached!</p>`, 4000)
         setHeroCelebrating(false)
@@ -1042,6 +1091,7 @@ async function playEvents(events: BookEvent[], opts: { mode: string }) {
     const label = bigWinLabel(finalUnits / 100)
     if (label) await countUpOverlay(label, finalUnits, 3200)
   }
+  if (feature) sfx.music("base")
   setTierUi(null)
   setDamage(0)
   return finalUnits
@@ -1221,6 +1271,7 @@ function openBuy() {
       const name = MODES.find((x) => x.id === id)!.name
       const ok = await confirmDialog(`Buy ${name}?`, `${MODES.find((x) => x.id === id)!.buys}. Price: ${fmt(st.bet * MODE_COST[id]!)}`, "Buy")
       if (!ok) return
+      sfx.buy()
       closeModal(m)
       void playRound(id)
     }))
@@ -1250,6 +1301,7 @@ function openInfo() {
   const m = modal(`
     <h2>${t("Game Info")}</h2>
     <div class="toggle-row"><button class="btn ${sfx.muted ? "ghost" : "green"}" data-mute>${sfx.muted ? "SOUND OFF" : "SOUND ON"}</button><span>Sound effects</span></div>
+    <div class="toggle-row"><button class="btn ${sfx.musicOn ? "green" : "ghost"}" data-music>${sfx.musicOn ? "MUSIC ON" : "MUSIC OFF"}</button><span>Music and ambience</span></div>
 
     <h3>How to play</h3>
     <p>${t("Abyssal Tide is played on a 6×6 grid. Clusters of 5 or more matching symbols joined horizontally or vertically win. Winning symbols are removed and new symbols fall in from above (a tumble); tumbles continue until no win remains. Wins are multiplied by the bet.")}</p>
@@ -1311,6 +1363,13 @@ function openInfo() {
     sfx.setMuted(!sfx.muted)
     mute.textContent = sfx.muted ? "SOUND OFF" : "SOUND ON"
     mute.className = `btn ${sfx.muted ? "ghost" : "green"}`
+  }
+  const music = $<HTMLButtonElement>("[data-music]", m)
+  music.onclick = () => {
+    sfx.unlock()
+    sfx.setMusic(!sfx.musicOn)
+    music.textContent = sfx.musicOn ? "MUSIC ON" : "MUSIC OFF"
+    music.className = `btn ${sfx.musicOn ? "green" : "ghost"}`
   }
 }
 
@@ -1391,6 +1450,7 @@ async function bootReplay() {
     const play = async () => {
       bar.innerHTML = `<span class="msg">${t("REPLAY")}</span>`
       sfx.unlock()
+      sfx.music("base")
       const units = await playEvents(round.events, { mode: round.mode })
       bar.innerHTML = `<span class="msg">${t("TOTAL WIN")} ${fmt(bookToApi(units))}</span><button class="btn gold" data-again>${t("PLAY AGAIN")}</button>`
       $<HTMLButtonElement>("[data-again]", bar).onclick = play
@@ -1553,8 +1613,7 @@ function showShowdown(): Promise<void> {
     if (!reduce) timers.push(window.setTimeout(() => sfx.spin(), 120))
     timers.push(window.setTimeout(() => {
       el.classList.add("slammed")
-      sfx.hit()
-      sfx.power()
+      sfx.slam()
     }, T.slam))
     timers.push(window.setTimeout(leave, T.slam + T.hold))
   })
@@ -1584,6 +1643,7 @@ async function boot() {
   }
   st.provider = createProvider()
   if (st.provider.kind === "demo") {
+    ;(window as unknown as { __sfx?: typeof sfx }).__sfx = sfx // QA hook (demo only)
     const tag = $(".logo .tag")
     tag.hidden = false
     tag.textContent = "DEMO"
@@ -1593,6 +1653,7 @@ async function boot() {
   const ready = runLoader(work)
     .then(() => (introSkipped() ? undefined : showIntro()))
     .then(() => showShowdown())
+    .then(() => sfx.music("base"))
   try {
     const auth = await authP
     st.jur = auth.jurisdiction as Record<string, unknown>

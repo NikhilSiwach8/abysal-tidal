@@ -1,0 +1,85 @@
+{
+ "amb_deep": {
+  "bus": "amb",
+  "loop": 24.0
+ },
+ "bigwin_end": {
+  "bus": "sfx"
+ },
+ "bigwin_loop": {
+  "bus": "sfx",
+  "loop": 0.6
+ },
+ "feature_end": {
+  "bus": "sfx"
+ },
+ "feature_intro": {
+  "bus": "sfx"
+ },
+ "lev_hit": {
+  "bus": "sfx"
+ },
+ "lev_roar": {
+  "bus": "sfx"
+ },
+ "mult_up": {
+  "bus": "sfx"
+ },
+ "music_base": {
+  "bus": "music",
+  "loop": 38.4
+ },
+ "music_bonus": {
+  "bus": "music",
+  "loop": 36.571429
+ },
+ "powerup": {
+  "bus": "sfx"
+ },
+ "reel_stop": {
+  "bus": "sfx"
+ },
+ "scatter_land": {
+  "bus": "sfx"
+ },
+ "scatter_trigger": {
+  "bus": "sfx"
+ },
+ "slam": {
+  "bus": "sfx"
+ },
+ "spin": {
+  "bus": "sfx"
+ },
+ "tease_loop": {
+  "bus": "sfx",
+  "loop": 1.0
+ },
+ "tumble_pop": {
+  "bus": "sfx"
+ },
+ "ui_buy": {
+  "bus": "sfx"
+ },
+ "ui_click": {
+  "bus": "sfx"
+ },
+ "wheel_miss": {
+  "bus": "sfx"
+ },
+ "wheel_tick": {
+  "bus": "sfx"
+ },
+ "wheel_win": {
+  "bus": "sfx"
+ },
+ "win_1": {
+  "bus": "sfx"
+ },
+ "win_2": {
+  "bus": "sfx"
+ },
+ "win_3": {
+  "bus": "sfx"
+ }
+}
