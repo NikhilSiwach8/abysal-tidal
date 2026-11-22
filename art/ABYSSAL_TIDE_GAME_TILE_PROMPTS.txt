@@ -1,5 +1,5 @@
 =====================================================================
- ABYSSAL TIDE — LOBBY GAME TILES, 4:3 AND 16:9 (copy-paste ready)
+ ABYSSAL TIDE — LOBBY GAME TILES, 3:4 AND 16:9 (copy-paste ready)
  Companion to ABYSSAL_TIDE_ASSET_PROMPTS.txt.
 =====================================================================
 
@@ -8,7 +8,7 @@ What these are
 The thumbnails players see in the casino lobby. They must read at a glance at
 small size: one clear scene, strong contrast, the logo large, nothing busy.
 
-   T1  4:3   (e.g. 1600x1200)   the harpooner and the Leviathan face to face
+   T1  3:4   (portrait, e.g. 1200x1600)   the Leviathan towering over the harpooner
    T2  16:9  (e.g. 1920x1080)   the same moment, wider, more sea and sky
 
 Each comes in two passes:
@@ -62,30 +62,34 @@ professional slot game key art.
 
 
 ---------------------------------------------------------------------
- T1-A  4:3 TILE — ART ONLY  (generate this)
+ T1-A  3:4 PORTRAIT TILE — ART ONLY  (generate this)
 ---------------------------------------------------------------------
-Settings: 4:3, 1600x1200 (or the largest 4:3 your tool allows).
-Save as: art/generated/marketing/tile_4x3_art.png
+Settings: 3:4 portrait, 1200x1600 (or the largest 3:4 your tool allows).
+Save as: art/generated/marketing/tile_3x4_art.png
 Prompt:
-Slot game key art in a 4:3 frame, a confrontation in a sunken deep-sea world:
-on the left, the hooded harpooner in a dark weathered coat and teal scarf,
-three-quarter view, braced to throw a long barbed whaling harpoon, eyes
-glowing teal #5FE3D2 under the hood, shown from the knees up and filling the
-left third; on the right, the giant sea serpent Leviathan rearing out of the
-water, coiled body of grey-green scales and pale belly plates, horned head
-lunging toward the hunter with jaws open, glowing teal gill slits, filling the
-right half; between them a huge curling wave crest of white foam and teal
-water arcs across the frame; behind them misty silhouettes of sunken ship
-masts and stone sea-stacks fading into fog; drifting bubbles and a few ember
-coral #E8553E flecks. The upper middle third is kept calm, misty and empty for
-a logo. Strong silhouettes, high contrast between the dark figures and the
-pale fog, readable at thumbnail size. Dark fantasy anime illustration,
-semi-realistic cel shading with clean confident black ink linework of varied
-weight, Japanese sumi-e ink-wash painting influence, desaturated greyscale of
-ink black #171B1D and fog grey #DCDFD7 with teal #2BB3A3 accents only, soft
-diffused light from the top left, misty deep-sea atmosphere, subtle paper
-grain, high detail, crisp edges, professional slot game key art.
-Avoid: text, letters, logo, UI, slot reels, frame, photorealistic, 3D render, extra limbs.
+Vertical slot game key art in a 3:4 portrait frame, a confrontation in a
+sunken deep-sea world seen from a low angle: in the lower left foreground, the
+hooded harpooner in a dark weathered coat and teal scarf, seen from behind and
+to the side from the waist up, head turned up toward the beast, gripping a
+long barbed whaling harpoon raised diagonally toward the upper right, eyes
+glowing teal #5FE3D2 under the hood, filling the lower left third; towering
+behind and above him in the middle and right of the frame, the giant sea
+serpent Leviathan rearing out of the water in a tall S-shaped coil of
+grey-green scales and pale belly plates, horned head at the right just below
+the upper quarter, lunging down toward the hunter with jaws open, glowing teal
+gill slits; a curling wave of white foam and teal water wraps around the base
+of the coils at the bottom of the frame; shafts of pale light fall from the
+surface far above; misty silhouettes of sunken masts and sea-stacks fade into
+the fog behind; drifting bubbles and a few ember coral #E8553E flecks. The top
+quarter of the frame is kept calm, misty and empty for a logo. Strong
+silhouettes, high contrast between the dark figures and the pale fog, readable
+at thumbnail size. Dark fantasy anime illustration, semi-realistic cel shading
+with clean confident black ink linework of varied weight, Japanese sumi-e
+ink-wash painting influence, desaturated greyscale of ink black #171B1D and fog
+grey #DCDFD7 with teal #2BB3A3 accents only, soft diffused light from the top
+left, misty deep-sea atmosphere, subtle paper grain, high detail, crisp edges,
+professional slot game key art.
+Avoid: text, letters, logo, UI, slot reels, frame, photorealistic, 3D render, extra limbs, landscape framing.
 
 ---------------------------------------------------------------------
  T2-A  16:9 TILE — ART ONLY  (generate this)
@@ -125,12 +129,12 @@ reference so the lettering style matches, and generate several variations to
 get the spelling right. For the final lobby tile, the art-only version plus our
 real logo is safer.
 
-T1-B  4:3   Take the T1-A prompt and replace the sentence starting "The upper
-            middle third is kept calm" with:
-  At the top centre, the exact words "ABYSSAL" on the first line and "TIDE" on
-  the second, in aggressive hand-painted white dry-brush calligraphy with a thick
-  black ink outline and a teal #2BB3A3 brush swash behind the letters, large,
-  about half the width of the image.
+T1-B  3:4   Take the T1-A prompt and replace the sentence starting "The top
+            quarter of the frame is kept calm" with:
+  Across the top quarter, the exact words "ABYSSAL" on the first line and "TIDE"
+  on the second, in aggressive hand-painted white dry-brush calligraphy with a
+  thick black ink outline and a teal #2BB3A3 brush swash behind the letters,
+  large, about three quarters of the width of the image.
 
 T2-B  16:9  Take the T2-A prompt and replace the sentence starting "The centre
             of the frame" with:
@@ -149,9 +153,9 @@ Send T1-A and T2-A (art only). I will:
   * place the real ABYSSAL TIDE logo in the logo zone, with a soft dark glow
     behind it so it reads on any lobby background;
   * export the exact sizes you need (tell me the dimensions Stake asks for if
-    they differ from 1600x1200 and 1920x1080), as high-quality PNG/JPG/WebP;
+    they differ from 1200x1600 and 1920x1080), as high-quality PNG/JPG/WebP;
   * check them at thumbnail size (about 300 px wide) so the characters and the
     logo still read.
 
-  [ ] tile_4x3_art.png    4:3, no text, calm logo zone in the upper middle
+  [ ] tile_3x4_art.png    3:4 portrait, no text, calm logo zone across the top quarter
   [ ] tile_16x9_art.png   16:9, no text, calm logo zone in the centre
