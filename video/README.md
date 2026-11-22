@@ -30,3 +30,12 @@ transform at frame 0 renders crisper than its neighbours and pops once per loop)
 VP9 alpha plays in Chrome, Edge and Firefox. Safari needs HEVC-with-alpha instead.
 Remotion is pinned to 4.0.540. Rendering uses Playwright's headless Chromium when present
 (`REMOTION_BROWSER` overrides).
+
+## 60 fps gameplay clips with sound
+
+`node scripts/capture60.cjs <startup|tumbles|tease|bonus|wheel|all> [outDir]` (needs `frontend/dist`
+served on :4173). The page runs at 1/8 speed (DevTools animation rate + warped timers/clocks/video),
+timestamped screencast frames are retimed to exactly 60 fps of game time. Every sound the game plays
+is logged in game time and `scripts/mix_capture_audio.py` rebuilds the soundtrack from
+`art/audio/wav` with the engine's bus levels, loops, fades and music ducking, then it is muxed in:
+`<clip>_60fps_sound.mp4`. Set `AUDIO_PY` to a Python with numpy + scipy.

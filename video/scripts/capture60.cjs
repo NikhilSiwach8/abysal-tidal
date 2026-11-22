@@ -37,6 +37,34 @@ const warp = (R) => {
   document.addEventListener("playing", (e) => e.target instanceof HTMLMediaElement && slow(e.target), true)
 }
 
+// Sound log: the capture is silent (and slowed), so every sound the engine starts/stops, every
+// playback-rate change and every music duck is logged in game time; mix_capture_audio.py rebuilds
+// the soundtrack from the same files and the clip gets muxed with it.
+const audioLog = () => {
+  const now = () => performance.now()
+  window.__alog = []
+  const hook = setInterval(() => {
+    const S = window.__sfx
+    if (!S || S.__logged) return
+    S.__logged = true
+    clearInterval(hook)
+    let id = 0
+    const log = window.__alog
+    const v0 = S.voice.bind(S)
+    S.voice = (n, o = {}) => {
+      const r = v0(n, o)
+      if (r) { r.__id = ++id; log.push({ k: "start", t: now(), id, n, rate: o.rate ?? 1, gain: o.gain ?? 1, loop: !!o.loop, bus: o.bus || null, fadeIn: o.fadeIn || 0 }) }
+      return r
+    }
+    const s0 = S.stopVoice.bind(S)
+    S.stopVoice = (v, f = 0.25) => { if (v && v.__id) log.push({ k: "stop", t: now(), id: v.__id, fade: f }); return s0(v, f) }
+    const d0 = S.duck.bind(S)
+    S.duck = (depth = 0.35, hold = 1.2, release = 0.8) => { log.push({ k: "duck", t: now(), depth, hold, release }); return d0(depth, hold, release) }
+    const t0 = S.teaseStart.bind(S)
+    S.teaseStart = (level) => { if (S.tease && S.tease.__id) log.push({ k: "rate", t: now(), id: S.tease.__id, rate: 1 + Math.max(0, level - 2) * 0.12 }); return t0(level) }
+  }, 5)
+}
+
 const skipIntro = () => { try { localStorage.setItem("abyssal-tide:skip-intro", "1") } catch {} }
 const ready = (p) => p.waitForFunction(() => !document.querySelector("#loader") && !document.querySelector(".vs") && !document.querySelector(".intro"), null, { timeout: 120000 })
 const idle = (p) => p.waitForFunction(() => !document.querySelector(".spin-btn")?.classList.contains("busy"), null, { timeout: 900000 })
@@ -63,11 +91,12 @@ const CLIPS = {
 async function capture(name, outDir) {
   const [query, skip, early, scenario] = CLIPS[name]
   const out = path.join(outDir, `${name}_60fps.mp4`)
-  const b = await chromium.launch()
+  const b = await chromium.launch({ args: ["--autoplay-policy=no-user-gesture-required"] })
   const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 1 })
   const p = await ctx.newPage()
   await p.addInitScript(warp, RATE)
   if (skip) await p.addInitScript(skipIntro)
+  await p.addInitScript(audioLog)
   const cdp = await ctx.newCDPSession(p)
   await cdp.send("Animation.enable")
   // a navigation creates a new document timeline: slow it again before anything paints
@@ -79,12 +108,16 @@ async function capture(name, outDir) {
     { env: { ...process.env, LD_LIBRARY_PATH: FFDIR }, stdio: ["pipe", "inherit", "inherit"] })
   const ffDone = new Promise((r) => ff.on("close", r))
 
-  let t0 = null, tick = 0, last = null, written = 0, recording = false
+  let t0 = null, tick = 0, last = null, written = 0, recording = false, audioT0 = null
   cdp.on("Page.screencastFrame", async ({ data, metadata, sessionId }) => {
     cdp.send("Page.screencastFrameAck", { sessionId }).catch(() => {})
     if (!recording) return
     const buf = Buffer.from(data, "base64")
-    if (t0 === null) t0 = metadata.timestamp
+    if (t0 === null) {
+      t0 = metadata.timestamp
+      // the page's (warped) clock at the first video frame = audio time zero
+      audioT0 = p.evaluate(() => performance.now()).catch(() => null)
+    }
     const gameT = (metadata.timestamp - t0) * RATE
     while (last && tick / FPS < gameT) { ff.stdin.write(last); tick++; written++ }
     last = buf
@@ -96,15 +129,33 @@ async function capture(name, outDir) {
   }
   if (early) await start()
   await p.goto(URL + query)
-  if (!early) { await ready(p); await start() }
+  if (!early) {
+    await ready(p)
+    // let the game decode its sounds before the clip starts (a player would hear them from here)
+    await p.mouse.click(5, H - 5)
+    await p.waitForFunction(() => window.__sfx && window.__sfx.loaded.length >= 26, null, { timeout: 120000 }).catch(() => {})
+    await start()
+  }
   await cdp.send("Animation.setPlaybackRate", { playbackRate: RATE }) // re-apply after navigation
   const real0 = Date.now()
   await scenario(p)
   recording = false
+  const alog = await p.evaluate(() => window.__alog || [])
+  const a0 = (await audioT0) ?? 0
   await cdp.send("Page.stopScreencast")
   if (last) { ff.stdin.write(last); written++ }
   ff.stdin.end(); await ffDone
   await b.close()
+  // soundtrack: rebuild from the log and mux it in
+  const logPath = out.replace(/\.mp4$/, ".sounds.json")
+  require("node:fs").writeFileSync(logPath, JSON.stringify({ duration: written / FPS, events: alog.map((e) => ({ ...e, t: (e.t - a0) / 1000 })) }))
+  const py = process.env.AUDIO_PY || "python3"
+  const wav = out.replace(/\.mp4$/, ".wav")
+  const mixed = out.replace(/_60fps\.mp4$/, "_60fps_sound.mp4")
+  require("node:child_process").execFileSync(py, [path.join(__dirname, "mix_capture_audio.py"), logPath, wav], { stdio: "inherit" })
+  require("node:child_process").execFileSync(path.join(FFDIR, "ffmpeg"), ["-v", "error", "-y", "-i", out, "-i", wav, "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", mixed],
+    { env: { ...process.env, LD_LIBRARY_PATH: FFDIR }, stdio: "inherit" })
+  console.log(`${name}: ${alog.length} sound events -> ${mixed}`)
   console.log(`${name}: ${written} frames = ${(written / FPS).toFixed(2)} s at ${FPS} fps (captured over ${((Date.now() - real0) / 1000).toFixed(0)} s real) -> ${out}`)
 }
 
