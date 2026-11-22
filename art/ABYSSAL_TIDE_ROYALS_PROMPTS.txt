@@ -1,0 +1,174 @@
+=====================================================================
+ ABYSSAL TIDE — LOW SYMBOLS AS 10 / J / Q / K / A  (copy-paste ready)
+ Companion to ABYSSAL_TIDE_ASSET_PROMPTS.txt (replaces prompts 4.1–4.5).
+=====================================================================
+
+What changes
+------------
+The five low symbols become card ranks, painted in the same ink-wash style as
+the rest of the game. Pay order and colour coding stay as they are, so the math
+does not change and players keep their colour cues:
+
+   Slot  Old symbol   New   Colour wash (unchanged)       Small sea ornament
+   L1    seahorse     10    sea-green  #5FBFA8           kelp ribbon
+   L2    starfish     J     ember coral #E8553E          knotted rope
+   L3    coral        Q     rose coral #E07A86           pearl
+   L4    shell        K     sand ochre #E7A94B           anchor fluke
+   L5    pearl        A     pale sea blue #8FB8EA        fish-hook barb
+
+L1 pays least, L5 most (A is the top low symbol). Ornaments stay small and in
+black ink, so the letters read first and nothing looks like a high symbol,
+the Wild, or the compass scatter.
+
+
+---------------------------------------------------------------------
+ HOW TO KEEP THEM CONSISTENT (read once)
+---------------------------------------------------------------------
+1. Attach your STYLE ANCHOR (prompt 0.1) as the style reference for all five.
+     Midjourney: --sref <anchor-url> --sw 200
+     GPT-Image / Ideogram / Leonardo / Flux: attach it as a style reference.
+2. Also attach the existing seahorse (L1) and shell (L4) symbols as references
+   for the brush weight and the watercolour wash.
+3. Generate "10" first. When you like it, attach it as a third reference for
+   J, Q, K and A, so all five share one hand-lettering style.
+4. Keep one seed for the set, and keep the framing identical: the character
+   centred, filling about 75% of the square, 10% margin on every side.
+5. The parchment tile (4.0) is added in code, so export each rank on a
+   TRANSPARENT background only. If your tool cannot export real transparency,
+   use "on a flat pure white #FFFFFF background" instead and I will key it out.
+6. Letters: image tools sometimes misdraw characters. Generate 6–10 variations
+   and keep a clean one, or use the FALLBACK at the end of this file.
+
+Palette (exact): ink black #171B1D, highlight white #F3F5F2, plus the one wash
+colour listed for that symbol. Soft light from the top left.
+
+NEGATIVE (paste into the negative field, or append "Avoid: ..." for tools
+without one):
+background, frame, border, tile, extra letters, extra numbers, words, serif
+font, typed font, clean vector font, 3D, bevel, chrome, metallic gold, glossy,
+gradient, neon, playing card, card suit symbols, hearts, spades, clubs,
+diamonds, casino chips, cartoon face, photorealistic, blurry, watermark.
+
+
+---------------------------------------------------------------------
+ SHARED PROMPT (the five prompts below already contain it)
+---------------------------------------------------------------------
+[CHARACTER] hand-painted in bold expressive black sumi-e dry-brush strokes
+#171B1D with ragged bristle edges and thick-to-thin calligraphic stroke
+weight, slight forward slant, a few ink splatter flecks, [ORNAMENT] drawn in
+the same black ink, a loose translucent [COLOUR] watercolour wash bleeding
+behind the character as the only colour, isolated on a transparent
+background, centred, filling 75% of the square. Japanese ink-wash
+calligraphic brush painting, professional 2D slot game symbol, readable at
+small size.
+
+
+---------------------------------------------------------------------
+ R1  "10"  (replaces L1 seahorse)
+---------------------------------------------------------------------
+Settings: 1:1, 1024x1024, TRANSPARENT background.
+Save as: art/generated/symbols/L1_ten.png
+Prompt:
+The number "10" hand-painted in bold expressive black sumi-e dry-brush strokes
+#171B1D with ragged bristle edges and thick-to-thin calligraphic stroke weight,
+the two digits close together, slight forward slant, a few ink splatter flecks,
+a single thin ribbon of kelp curling around the base of the "1" drawn in the
+same black ink, a loose translucent sea-green #5FBFA8 watercolour wash bleeding
+behind the number as the only colour, isolated on a transparent background,
+centred, filling 75% of the square. Japanese ink-wash calligraphic brush
+painting, professional 2D slot game symbol, readable at small size.
+Avoid: other numbers, letters, background, frame, typed font, 3D, gold, glossy.
+
+---------------------------------------------------------------------
+ R2  "J"  (replaces L2 starfish)
+---------------------------------------------------------------------
+Settings: 1:1, 1024x1024, TRANSPARENT background.
+Save as: art/generated/symbols/L2_jack.png
+Prompt:
+The capital letter "J" hand-painted in bold expressive black sumi-e dry-brush
+strokes #171B1D with ragged bristle edges and thick-to-thin calligraphic stroke
+weight, a deep hooked tail, slight forward slant, a few ink splatter flecks, a
+short length of rope tied in a simple sailor's knot around the stem drawn in the
+same black ink, a loose translucent ember-coral #E8553E watercolour wash
+bleeding behind the letter as the only colour, isolated on a transparent
+background, centred, filling 75% of the square. Japanese ink-wash calligraphic
+brush painting, professional 2D slot game symbol, readable at small size.
+Avoid: other letters, numbers, background, frame, typed font, 3D, gold, glossy.
+
+---------------------------------------------------------------------
+ R3  "Q"  (replaces L3 coral)
+---------------------------------------------------------------------
+Settings: 1:1, 1024x1024, TRANSPARENT background.
+Save as: art/generated/symbols/L3_queen.png
+Prompt:
+The capital letter "Q" hand-painted in bold expressive black sumi-e dry-brush
+strokes #171B1D with ragged bristle edges and thick-to-thin calligraphic stroke
+weight, a round bowl and a sweeping brush-flick tail, slight forward slant, a
+few ink splatter flecks, one small round pearl resting where the tail crosses
+the bowl, the pearl softly shaded white #F3F5F2 with a tiny highlight, a loose
+translucent rose-coral #E07A86 watercolour wash bleeding behind the letter as
+the only colour, isolated on a transparent background, centred, filling 75% of
+the square. Japanese ink-wash calligraphic brush painting, professional 2D slot
+game symbol, readable at small size.
+Avoid: other letters, numbers, background, frame, typed font, 3D, gold, glossy.
+
+---------------------------------------------------------------------
+ R4  "K"  (replaces L4 shell)
+---------------------------------------------------------------------
+Settings: 1:1, 1024x1024, TRANSPARENT background.
+Save as: art/generated/symbols/L4_king.png
+Prompt:
+The capital letter "K" hand-painted in bold expressive black sumi-e dry-brush
+strokes #171B1D with ragged bristle edges and thick-to-thin calligraphic stroke
+weight, strong diagonal arms, slight forward slant, a few ink splatter flecks,
+the lower arm ending in the curved fluke of a small ship's anchor drawn in the
+same black ink, a loose translucent warm sand-ochre #E7A94B watercolour wash
+bleeding behind the letter as the only colour, isolated on a transparent
+background, centred, filling 75% of the square. Japanese ink-wash calligraphic
+brush painting, professional 2D slot game symbol, readable at small size.
+Avoid: other letters, numbers, background, frame, typed font, 3D, gold, glossy, full anchor.
+
+---------------------------------------------------------------------
+ R5  "A"  (replaces L5 pearl — the highest low symbol)
+---------------------------------------------------------------------
+Settings: 1:1, 1024x1024, TRANSPARENT background.
+Save as: art/generated/symbols/L5_ace.png
+Prompt:
+The capital letter "A" hand-painted in bold expressive black sumi-e dry-brush
+strokes #171B1D with ragged bristle edges and thick-to-thin calligraphic stroke
+weight, a sharp peak and a slashing crossbar, slight forward slant, a few ink
+splatter flecks, the crossbar extending into a small barbed fish-hook point
+drawn in the same black ink, a loose translucent pale sea-blue #8FB8EA
+watercolour wash bleeding behind the letter as the only colour, with a faint
+white #F3F5F2 highlight on the peak, isolated on a transparent background,
+centred, filling 75% of the square. Japanese ink-wash calligraphic brush
+painting, professional 2D slot game symbol, readable at small size.
+Avoid: other letters, numbers, background, frame, typed font, 3D, gold, glossy, harpoon, trident.
+
+
+---------------------------------------------------------------------
+ FALLBACK — if a tool keeps misdrawing the characters
+---------------------------------------------------------------------
+Generate only the wash and ornament, then I letter the character in code with
+the game's brush font (Permanent Marker) so all five match exactly.
+Settings: 1:1, 1024x1024, TRANSPARENT background.
+Prompt (replace [ORNAMENT] and [COLOUR] from the table at the top):
+A loose translucent [COLOUR] watercolour wash in a rough oval bleeding outward
+with soft paper-grain edges and a few ink splatter flecks, [ORNAMENT] drawn
+small in bold black sumi-e brush strokes #171B1D at the lower right, the centre
+left open for a letter, isolated on a transparent background, centred.
+Japanese ink-wash painting, professional 2D slot game symbol backing.
+Avoid: letters, numbers, text, frame, background, 3D.
+
+
+---------------------------------------------------------------------
+ DELIVERY CHECKLIST
+---------------------------------------------------------------------
+  [ ] L1_ten.png     "10"   sea-green wash, kelp ribbon
+  [ ] L2_jack.png    "J"    coral wash, rope knot
+  [ ] L3_queen.png   "Q"    rose wash, pearl
+  [ ] L4_king.png    "K"    ochre wash, anchor fluke
+  [ ] L5_ace.png     "A"    pale-blue wash, fish-hook barb
+All 1024x1024, transparent (or flat white), character centred at about 75%.
+Send them over and I will key, size, place them on the parchment tile and
+update the paytable names, the rules screen and the win banner names.
