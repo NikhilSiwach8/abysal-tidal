@@ -903,7 +903,8 @@ async function evWinInfo(e: BookEvent) {
   }
   const top = [...wins].sort((a, b) => b.win - a.win)[0]!
   const mult = top.meta.clusterMult > 1 ? ` ×${top.meta.clusterMult}` : ""
-  st.pendingLine = `${top.clusterSize} ${SYMBOL_NAMES[top.symbol].toUpperCase()}${mult}${wins.length > 1 ? ` +${wins.length - 1}` : ""}`
+  const rank = /^L[1-5]$/.test(top.symbol) // card ranks read "8 × Q"; creatures "8 KRAKEN"
+  st.pendingLine = `${top.clusterSize}${rank ? " ×" : ""} ${SYMBOL_NAMES[top.symbol].toUpperCase()}${mult}${wins.length > 1 ? ` +${wins.length - 1}` : ""}`
   sfx.win(Math.min(4, Math.ceil(Math.log10(1 + (e.totalWin as number) / 100) * 2)))
 }
 

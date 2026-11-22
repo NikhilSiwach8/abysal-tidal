@@ -21,11 +21,11 @@ DST = os.path.join(ROOT, "frontend", "src", "assets")
 JOBS = [
     # symbols (cell <= ~150 css px -> 320 px)
     ("symbols/tile_parchment.png", "sym/tile.webp", 400),
-    ("symbols/L1_seahorse.png", "sym/L1.webp", 400),
-    ("symbols/L2_starfish.png", "sym/L2.webp", 400),
-    ("symbols/L3_coral.png", "sym/L3.webp", 400),
-    ("symbols/L4_shell.png", "sym/L4.webp", 400),
-    ("symbols/L5_pearl.png", "sym/L5.webp", 400),
+    ("symbols/L1_ten.png", "sym/L1.webp", 400),
+    ("symbols/L2_jack.png", "sym/L2.webp", 400),
+    ("symbols/L3_queen.png", "sym/L3.webp", 400),
+    ("symbols/L4_king.png", "sym/L4.webp", 400),
+    ("symbols/L5_ace.png", "sym/L5.webp", 400),
     ("symbols/H1_jellyfish.png", "sym/H1.webp", 400),
     ("symbols/H2_nautilus.png", "sym/H2.webp", 400),
     ("symbols/H3_anglerfish.png", "sym/H3.webp", 400),
