@@ -39,6 +39,7 @@ cd .. && math-sdk/env/bin/python tools/audit_publish.py --books
 ### Rules implemented
 
 * 6×6, no padding. Clusters of 5+ (horizontal/vertical); Wild `W` substitutes; tumbles until no win.
+* Low symbols L1–L5 are the card ranks 10, J, Q, K, A (art cut by `tools/prepare_royals.py`); the highs are sea creatures.
 * Multiplier spots on every cell. Base: start 1×, reset every spin. A winning cluster that
   contains a Wild doubles every spot under it after paying (cap 64×). Cluster multiplier =
   sum of covered spots above 1×, or 1× if none.
