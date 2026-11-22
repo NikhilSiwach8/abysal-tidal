@@ -151,28 +151,30 @@ translated text because several titles contain restricted words ("WIN").
 
 ## Audio
 
-All sound is original and rendered from code: `tools/sound_design.py` (numpy/scipy; FM bells,
-filtered noise, sine-drop drums, dark convolution reverb, one D-minor palette) writes
-`art/audio/wav/` + `art/audio/manifest.json`, and `tools/encode_audio.sh` encodes the game's MP3s
-into `frontend/src/assets/audio/` (2.4 MB: mono effects 96 kbps, stereo music 128 kbps).
+All sound is original and rendered from code, and every sound is a thing from the game's world rather
+than a generic slot tone. `tools/sound_models.py` holds physical models (Minnaert bubbles, stick-slip
+rope/hull creaks, modal oak, a cast-bronze ship's bell, the brass compass case, frame and war drums, a
+bowed cello, a conch horn, whale and Leviathan voices through vowel formants, surf, a harpoon whistle);
+`tools/sound_design.py` builds the set from them and `tools/encode_audio.sh` writes the game's MP3s
+into `frontend/src/assets/audio/` (2.6 MB).
 
-| Sound | When |
+| Moment | Sound |
 | --- | --- |
-| `amb_deep` (24 s loop) | ambience bed, always under the game (music bus toggle) |
-| `music_base` (75 bpm, 38.4 s loop) / `music_bonus` (105 bpm, 36.6 s loop) | base game / free spins, 1.4 s crossfade |
-| `spin`, `reel_stop` (pitch steps up per reel), `fall` (tumble refill, lighter) | reels |
-| `tease_loop` (heartbeat, faster per scatter) | reels holding back after 2+ scatters |
-| `scatter_land` (a whole tone higher per scatter), `scatter_trigger` | scatters, bonus won |
-| `win_1..3`, `tumble_pop`, `mult_up` | cluster wins by size, bursts, spot doubling |
-| `lev_hit`, `powerup`, `lev_roar` | damage, power-up every 25, Leviathan rises |
-| `feature_intro`, `feature_end`, `bigwin_loop` + `bigwin_end` | tier start, small feature total, big-win count-up |
-| `wheel_tick` (one per slice edge), `wheel_win` / `wheel_miss`, `ui_buy`, `ui_click`, `slam` | wheel, menus, showdown |
+| Ambience | below the hull: deep current, timbers working, distant whales, drifting bubbles (24 s loop) |
+| Base music "The Deep" | cello drone and a slow D-Dorian cello line, frame-drum heartbeat, low wordless choir, whale calls (75 bpm) |
+| Bonus music "The Hunt" | war and frame drums, driving cello ostinato, conch call every 4 bars, shell rattle, choir (105 bpm) |
+| Spin / reel stop / refill | rope over a pulley + rushing water / barnacled oak knocking home (a step higher per reel) / lighter knock |
+| Tease | sonar ping each second, hull groaning, a deep pulse; faster per extra scatter (+ sonar rings on screen) |
+| Compass lands / bonus won | needle ratchet and the brass case ringing, a tone higher per compass / needle whirs, ship's bell, swell, whale |
+| Wins | small: sonar return; medium: a whale replies; large: the conch over a swell. Bursts: bubble cloud + ink swirl (+ bubbles on screen) |
+| Wild multiplier / Leviathan | a tightening whirlpool / harpoon whistle, thud and grunt; power-up: tidal surge; rises: bellow, bubble blast |
+| Free spins / big win | war conch, wave and drum / bubbles + shells while counting, then wave, conch and drums |
+| Depth Wheel, menus, showdown | ship's-helm clicks, "two bells" or a helm creak / oak knock, taut rope + small bell / harpoon, war drum, conch |
 
-Engine (`src/audio.ts`): master (gentle compressor) -> music (ducked under stingers), ambience, sfx
-buses; loops use native looping between 0.15 s and 0.15 s + loop length (MP3-padding safe; every
-loop is verified sample-exact). Sound and music toggles are remembered; audio unlocks on the first
-tap/key and suspends while the tab is hidden; a synthesised fallback covers any sound not yet decoded.
-Loudness: music about -20 LUFS, ambience -31, effects -12 to -19 before the bus mix.
+Engine (`src/audio.ts`): master (gentle compressor) -> music (ducked under big moments), ambience, sfx
+buses; native loops between 0.15 s and 0.15 s + loop length (MP3-padding safe; every loop verified
+sample-exact). Sound and music toggles are remembered; audio unlocks on the first tap/key and suspends
+while the tab is hidden; a synthesised fallback covers any sound not yet decoded.
 
 ## Upload
 

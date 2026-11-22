@@ -53,7 +53,7 @@
  },
  "tease_loop": {
   "bus": "sfx",
-  "loop": 1.0
+  "loop": 2.0
  },
  "tumble_pop": {
   "bus": "sfx"

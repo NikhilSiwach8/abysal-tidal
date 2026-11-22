@@ -250,6 +250,40 @@ function fx(key: string, cls: string, at: { reel: number; row: number }, scale: 
   setTimeout(() => el.remove(), 900 * speed())
 }
 
+/** Air escaping a burst symbol: a few bubbles wobble up out of each popped cell (capped). */
+const BUBBLES = assetsMatching("fx/bubble_")
+function bubbleUp(cells: { reel: number; row: number }[]) {
+  if (prefersReduced() || !BUBBLES.length) return
+  const grid = $(".grid")
+  const pick = cells.length > 12 ? cells.filter((_, i) => i % Math.ceil(cells.length / 12) === 0) : cells
+  for (const p of pick) {
+    for (let k = 0; k < 3; k++) {
+      const size = 0.2 + Math.random() * 0.22
+      const el = h(`<img class="fx-bubble" src="${BUBBLES[(p.reel * 3 + p.row + k) % BUBBLES.length]}" alt=""
+        style="left:${((p.reel + 0.25 + Math.random() * 0.5) * 100) / N}%;top:${((p.row + 0.4 + Math.random() * 0.3) * 100) / N}%;width:calc(var(--cell) * ${size.toFixed(2)})">`)
+      grid.append(el)
+      const rise = 60 + Math.random() * 90
+      const sway = (Math.random() - 0.5) * 30
+      el.animate([
+        { transform: "translate(-50%, -50%) scale(.4)", opacity: 0 },
+        { transform: `translate(calc(-50% + ${sway * 0.4}px), calc(-50% - ${rise * 0.3}px)) scale(1)`, opacity: 0.9, offset: 0.2 },
+        { transform: `translate(calc(-50% - ${sway * 0.5}px), calc(-50% - ${rise * 0.7}px)) scale(1)`, opacity: 0.7, offset: 0.65 },
+        { transform: `translate(calc(-50% + ${sway}px), calc(-50% - ${rise}px)) scale(1.15)`, opacity: 0 },
+      ], { duration: (700 + Math.random() * 500) * speed(), delay: k * 70 * speed(), easing: "cubic-bezier(.3,.6,.5,1)", fill: "backwards" })
+        .finished.then(() => el.remove(), () => el.remove())
+    }
+  }
+}
+
+/** A ring of water spreading from a landed compass. */
+function ripple(at: { reel: number; row: number }) {
+  if (prefersReduced()) return
+  const el = h(`<i class="fx-ripple" style="left:${((at.reel + 0.5) * 100) / N}%;top:${((at.row + 0.5) * 100) / N}%"></i>`)
+  $(".grid").append(el)
+  el.animate([{ transform: "translate(-50%, -50%) scale(.3)", opacity: 0.9 }, { transform: "translate(-50%, -50%) scale(2.4)", opacity: 0 }],
+    { duration: 900 * speed(), easing: "cubic-bezier(.2,.7,.3,1)" }).finished.then(() => el.remove(), () => el.remove())
+}
+
 /** Water slash across the Leviathan when it takes damage. */
 function slashLeviathan() {
   const lev = $(".leviathan")
@@ -766,7 +800,7 @@ function setTeaseDim(on: boolean) {
 
 /** Tease frame over a reel that is about to stop with a bonus in reach. */
 function teaseColumn(r: number, level: number): HTMLElement {
-  const el = h(`<div class="tease-col lv${Math.min(level, 4)}" style="left:${(r * 100) / N}%"><i></i></div>`)
+  const el = h(`<div class="tease-col lv${Math.min(level, 4)}" style="left:${(r * 100) / N}%"><i></i><b class="sonar"></b><b class="sonar s2"></b></div>`)
   $(".grid").append(el)
   return el
 }
@@ -838,6 +872,7 @@ async function evReveal(e: BookEvent) {
         for (let c = 0; c < N; c++) if (isScatter(board[r]![c]!)) {
           cells[r]![c]?.classList.add("scat-land")
           fx("fx/glow_ring", "fx-glow", { reel: r, row: c }, 1.6)
+          ripple({ reel: r, row: c })
         }
       })
     }
@@ -968,6 +1003,7 @@ async function evTumble(e: BookEvent) {
   }
   sfx.pop()
   for (const o of st.lastBursts.splice(0)) fx("fx/ink_splash", "fx-ink", o, 2.2)
+  bubbleUp(exploding)
   await sleep(340 + popEnd / speed())
   // 2. survivors fall under gravity, new symbols drop in from above (bottom first)
   const gone = new Set(exploding.map((p) => `${p.reel},${p.row}`))

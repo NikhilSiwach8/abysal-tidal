@@ -773,3 +773,14 @@ table.modes th { font-family: var(--f-lil); font-weight: 400; }
 @keyframes pu-slam { 0% { opacity: 0; transform: rotate(-4deg) scale(2.4); } 40% { opacity: 1; } 100% { transform: rotate(-4deg) scale(1); } }
 .pu-call.still *, .pu-call.still { animation: none; opacity: 1; }
 .pu-call.still .pu-ring { transform: translate(-50%, -64%); }
+
+/* ---------------------------------------------------------------- themed board fx (main.ts bubbleUp, ripple, tease sonar) */
+.fx-bubble { position: absolute; z-index: 5; pointer-events: none; height: auto; will-change: transform, opacity; }
+.fx-ripple { position: absolute; z-index: 5; width: var(--cell); aspect-ratio: 1; border-radius: 50%; pointer-events: none; will-change: transform, opacity;
+  border: 2px solid rgba(214, 255, 249, .85); box-shadow: 0 0 10px rgba(95, 227, 210, .7), inset 0 0 10px rgba(95, 227, 210, .5); }
+/* sonar: rings sweep out of the teased reel on each ping (1 s, like the tease sound) */
+.tease-col .sonar { position: absolute; left: 50%; top: 50%; width: 120%; aspect-ratio: 1; border-radius: 50%; pointer-events: none;
+  border: 2px solid var(--tc); opacity: 0; transform: translate(-50%, -50%) scale(.2); animation: sonar calc(1s * var(--spd)) ease-out infinite; }
+.tease-col .sonar.s2 { animation-delay: calc(.5s * var(--spd)); border-width: 1px; }
+@keyframes sonar { 0% { opacity: .9; transform: translate(-50%, -50%) scale(.2); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); } }
+@media (prefers-reduced-motion: reduce) { .tease-col .sonar { display: none; } }
