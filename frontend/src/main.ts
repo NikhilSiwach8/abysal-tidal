@@ -284,12 +284,78 @@ function ripple(at: { reel: number; row: number }) {
     { duration: 900 * speed(), easing: "cubic-bezier(.2,.7,.3,1)" }).finished.then(() => el.remove(), () => el.remove())
 }
 
-/** Water slash across the Leviathan when it takes damage. */
+/**
+ * Spear attack when the Leviathan takes damage: the harpooner lunges, a painted harpoon flies
+ * from the hero's spear hand to the Leviathan's flank trailing a water streak, sticks with a
+ * splash, then fades. Positions come from the characters' boxes, so it works at every size.
+ * Composited only (transform/opacity); reduced motion keeps just the impact flash.
+ */
+const SPEAR_SVG = `<svg viewBox="0 0 400 40" class="spear-svg" aria-hidden="true">
+  <path d="M8 20 L300 20" stroke="#171b1d" stroke-width="11" stroke-linecap="round"/>
+  <path d="M10 20 L298 20" stroke="#6b5640" stroke-width="5" stroke-linecap="round"/>
+  <path d="M60 14 Q70 20 60 26 M90 14 Q100 20 90 26" stroke="#c9b48a" stroke-width="3" fill="none"/>
+  <path d="M296 20 L392 20 L360 9 L372 20 L360 31 Z" fill="#2a2f31" stroke="#171b1d" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M330 20 L312 6 M330 20 L312 34" stroke="#171b1d" stroke-width="5" stroke-linecap="round"/>
+  <path d="M300 18 L388 19" stroke="#f3f5f2" stroke-width="1.5" opacity=".7"/></svg>`
+let spearBusy = false
 function slashLeviathan() {
   const lev = $(".leviathan")
-  const el = h(`<img class="fx fx-slash" src="${asset("fx/water_slash")}" alt="">`)
-  lev.append(el)
-  setTimeout(() => el.remove(), 600 * speed())
+  const hero = $(".hero")
+  // impact splash at the Leviathan (the old water slash)
+  const hit = () => {
+    const el = h(`<img class="fx fx-slash" src="${asset("fx/water_slash")}" alt="">`)
+    lev.append(el)
+    setTimeout(() => el.remove(), 600 * speed())
+  }
+  if (prefersReduced() || spearBusy) return hit()
+  spearBusy = true
+  const hb = hero.getBoundingClientRect()
+  const lb = lev.getBoundingClientRect()
+  // thrown from the raised harpoon (top right of the hero) to the Leviathan's chest; the spear
+  // arcs above the board top (one composited animation along sampled points of the arc)
+  const x0 = hb.left + hb.width * 0.85, y0 = hb.top + hb.height * 0.12
+  const x1 = lb.left + lb.width * 0.3, y1 = lb.top + lb.height * 0.36
+  const boardTop = $(".grid").getBoundingClientRect().top
+  const peak = Math.min(y0, y1, boardTop) - Math.max(30, (x1 - x0) * 0.08)
+  const W = Math.min(300, Math.max(150, hb.width * 0.95))
+  const pts: { x: number; y: number; a: number }[] = []
+  const N = 14
+  const at = (k: number) => {
+    const u = 1 - k
+    return { x: u * u * x0 + 2 * u * k * ((x0 + x1) / 2) + k * k * x1, y: u * u * y0 + 2 * u * k * peak + k * k * y1 }
+  }
+  for (let i = 0; i <= N; i++) {
+    const k = i / N
+    const p = at(k), q = at(Math.min(1, k + 0.02)), r = at(Math.max(0, k - 0.02))
+    pts.push({ ...p, a: (Math.atan2(q.y - r.y, q.x - r.x) * 180) / Math.PI })
+  }
+  // the spear's tip leads: offset the box so the tip (right end) sits on the path point
+  const tf = (p: { x: number; y: number; a: number }) => `translate(${p.x}px, ${p.y}px) rotate(${p.a}deg) translateX(${-W * 0.97}px)`
+  hero.animate([
+    { transform: "none" },
+    { transform: "translateX(-2%) rotate(-2deg)", offset: 0.3 },
+    { transform: "translateX(6%) rotate(3deg)", offset: 0.55 },
+    { transform: "none" },
+  ], { duration: 520 * speed(), easing: "cubic-bezier(.3,.7,.3,1)" })
+  const wrap = h(`<div class="spear" style="width:${W}px"><i class="spear-trail"></i>${SPEAR_SVG}</div>`)
+  document.body.append(wrap)
+  const done = () => { wrap.remove(); spearBusy = false }
+  const failsafe = setTimeout(done, 2500 * speed()) // never leave a spear behind
+  const last = pts[N]!
+  wrap.animate(pts.map((p, i) => ({ transform: tf(p), opacity: i === 0 ? 0 : 1, offset: i / N })),
+    { duration: 340 * speed(), delay: 140 * speed(), easing: "cubic-bezier(.4,0,.85,.7)", fill: "both" })
+    .finished.then(() => {
+      hit()
+      wrap.classList.add("stuck")
+      return wrap.animate([
+        { transform: tf(last), opacity: 1 },
+        { transform: tf({ ...last, a: last.a + 4 }), opacity: 1, offset: 0.1 },
+        { transform: tf({ ...last, a: last.a - 3 }), opacity: 1, offset: 0.2 },
+        { transform: tf(last), opacity: 1, offset: 0.35 },
+        { transform: tf(last), opacity: 0 },
+      ], { duration: 650 * speed(), fill: "forwards" }).finished
+    })
+    .then(() => { clearTimeout(failsafe); done() }, () => { clearTimeout(failsafe); done() })
 }
 
 // ================================================================ HUD helpers
