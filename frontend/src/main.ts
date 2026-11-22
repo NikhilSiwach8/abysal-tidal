@@ -7,7 +7,7 @@ import "./style.css"
 
 import { NOISE_URL, UI_ICONS, icon } from "./art"
 import { allAssetUrls, asset, assetsMatching, preloadTracked, titleImage } from "./assets"
-import { setLeviathanLoopPaused, startLoops, attachWheelLoops } from "./loops"
+import { setLeviathanLoopPaused, startLoops, attachWheelLoops, logoReveal, titleHunt, ONE_SHOT_CLIPS } from "./loops"
 import bgFar from "./assets/bg/bg_layer_far_fog.webp"
 import bgMid from "./assets/bg/bg_layer_mid_stacks_ship.webp"
 import bgFront from "./assets/bg/bg_layer_front_kelp.webp"
@@ -1548,7 +1548,7 @@ function showIntro(): Promise<void> {
   ]
   const el = h(`<div class="intro" role="dialog" aria-modal="true" aria-label="${t("Game introduction")}">
     <div class="intro-fog"></div>
-    <img class="intro-logo" src="${asset("lettering/logo")}" alt="Abyssal Tide" draggable="false">
+    <div class="intro-logo-wrap await-video"><img class="intro-logo" src="${asset("lettering/logo")}" alt="Abyssal Tide" draggable="false"></div>
     <div class="intro-cards">${cards.map(([c, title, body, art], i) => `
       <article class="intro-card glow-${c}" style="--i:${i};background-image:url(${asset("ui/card")})">
         <h3>${title}</h3><div class="intro-art">${art}</div><p>${body}</p>
@@ -1559,6 +1559,9 @@ function showIntro(): Promise<void> {
   translateTree(el)
   st.modal = true
   document.body.append(el)
+  // the ink-brush reveal (60 fps clip); if it cannot start quickly the CSS drop-in plays instead
+  const wrap = el.querySelector<HTMLElement>(".intro-logo-wrap")!
+  void logoReveal(wrap).play(700).then(() => wrap.classList.remove("await-video"))
   const box = el.querySelector<HTMLInputElement>(".intro-skip input")!
   return new Promise((resolve) => {
     let closed = false
@@ -1614,12 +1617,14 @@ function showShowdown(): Promise<void> {
       <img class="rig-l" src="${asset("chars/lev_gills")}" alt="" data-part="gills">
     </div></div>
     <div class="vs-title"><img class="vs-title-slash" src="${asset("fx/water_slash")}" alt=""><h1>${t("THE HUNT BEGINS")}</h1></div>
+    <div class="vs-title-clip"></div>
     <div class="vs-black"></div>
   </div>`)
   st.modal = true
   document.body.append(el)
   // timings in ms (scaled down for reduced motion)
   const T = reduce ? { slam: 150, hold: 1100 } : { slam: 820, hold: 1700 }
+  const titleClip = titleHunt(el.querySelector<HTMLElement>(".vs-title-clip")!)
   return new Promise((resolve) => {
     let leaving = false
     const timers: number[] = []
@@ -1648,6 +1653,8 @@ function showShowdown(): Promise<void> {
     el.addEventListener("click", leave)
     if (!reduce) timers.push(window.setTimeout(() => sfx.spin(), 120))
     timers.push(window.setTimeout(() => {
+      // the title clip has its own slam (HUNT lands at +0.46 s, with the slam sound's impact)
+      void titleClip.play(250).then((ok) => { if (ok) el.classList.add("clip-title") })
       el.classList.add("slammed")
       sfx.slam()
     }, T.slam))
@@ -1662,7 +1669,8 @@ async function boot() {
   addEventListener("pointerdown", warm, { once: true, capture: true })
   addEventListener("keydown", warm, { once: true, capture: true })
   // Everything the game draws is decoded behind the splash, so nothing pops in later.
-  const work: Promise<unknown>[] = [...preloadTracked(allAssetUrls()), document.fonts?.ready ?? Promise.resolve()]
+  const work: Promise<unknown>[] = [...preloadTracked(allAssetUrls()), document.fonts?.ready ?? Promise.resolve(),
+    ...ONE_SHOT_CLIPS.map((u) => fetch(u).then((r) => r.blob()).catch(() => undefined))]
   if (params.get("social") === "true") setSocial(true)
   buildDom()
   startLoops()

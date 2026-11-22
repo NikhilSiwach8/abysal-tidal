@@ -14,6 +14,8 @@ import logoLoop from "./assets/video/logo.webm?url"
 import bgLoopWebm from "./assets/video/bg.webm?url"
 import bgLoopMp4 from "./assets/video/bg.mp4?url"
 import wheelHubLoop from "./assets/video/wheel_hub.webm?url"
+import logoRevealClip from "./assets/video/logo_reveal.webm?url"
+import titleHuntClip from "./assets/video/title_hunt.webm?url"
 import wheelGlowLoop from "./assets/video/wheel_glow.webm?url"
 
 const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -93,3 +95,46 @@ export function attachWheelLoops(wheel: HTMLElement): void {
   wheel.prepend(glow)
   attach(glow, wheel, "glow-video-on", makeVideo("loop-video", [[wheelGlowLoop, "video/webm"]]))
 }
+
+/** URLs of the one-shot clips, so the loader can fetch them into the cache. */
+export const ONE_SHOT_CLIPS = [logoRevealClip, titleHuntClip]
+
+/**
+ * A one-shot transparent clip (Remotion, 60 fps): prepared paused inside `host`; play() starts it
+ * and resolves true once frames are playing (the host gets `video-on`), false if it cannot play
+ * in time (Safari, reduced motion, slow load) -- the caller then keeps its CSS animation.
+ * The clip holds its last frame when it ends.
+ */
+function oneShot(host: HTMLElement, src: string, cls: string): { play: (waitMs: number) => Promise<boolean> } {
+  if (reducedMotion() || !alphaWebmSupported()) return { play: async () => false }
+  const v = document.createElement("video")
+  v.className = `oneshot-video ${cls}`
+  v.muted = true
+  v.defaultMuted = true
+  v.playsInline = true
+  v.preload = "auto"
+  v.setAttribute("aria-hidden", "true")
+  v.src = src
+  host.append(v)
+  return {
+    play: (waitMs) => new Promise<boolean>((resolve) => {
+      let done = false
+      const finish = (ok: boolean) => {
+        if (done) return
+        done = true
+        if (ok) host.classList.add("video-on")
+        else v.remove()
+        resolve(ok)
+      }
+      v.addEventListener("playing", () => finish(true), { once: true })
+      v.addEventListener("error", () => finish(false), { once: true })
+      setTimeout(() => finish(false), waitMs)
+      void v.play().catch(() => finish(false))
+    }),
+  }
+}
+
+/** The ink-brush logo reveal on the intro screen. */
+export const logoReveal = (host: HTMLElement) => oneShot(host, logoRevealClip, "logo-reveal")
+/** "THE HUNT BEGINS" title slam in the showdown. */
+export const titleHunt = (host: HTMLElement) => oneShot(host, titleHuntClip, "title-hunt")

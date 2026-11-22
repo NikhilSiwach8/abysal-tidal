@@ -12,7 +12,9 @@ const alpha = ["--codec=vp9", "--pixel-format=yuva420p", "--image-format=png"]
 const jobs = [
   ["HeroIdle", "hero_idle.webm", [...alpha, "--scale=0.75", "--crf=32"]],
   ["LeviathanIdle", "lev_idle.webm", [...alpha, "--scale=0.5", "--crf=32"]],
-  ["LogoShimmer", "logo.webm", [...alpha, "--scale=0.5", "--crf=32"]],
+  ["LogoIdle", "logo.webm", [...alpha, "--scale=0.5", "--crf=32"]],
+  ["LogoReveal", "logo_reveal.webm", [...alpha, "--crf=34"]],
+  ["TitleHunt", "title_hunt.webm", [...alpha, "--crf=34"]],
   ["WheelHubIdle", "wheel_hub.webm", [...alpha, "--crf=32"]],
   ["WheelGlowLoop", "wheel_glow.webm", [...alpha, "--scale=0.75", "--crf=50"]],
   ["BackgroundLoop", "bg.webm", ["--codec=vp9", "--scale=0.75", "--crf=34"]],

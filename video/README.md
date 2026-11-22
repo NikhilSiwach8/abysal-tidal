@@ -11,6 +11,9 @@ layers, so the motion matches the in-game idles exactly.
 | `LogoShimmer` | `out/LogoShimmer.webm` (VP9 + alpha, 1280×640) | teal light sweep, ink droplets |
 | `WheelHubIdle` | `out/WheelHubIdle.webm` (VP9 + alpha, 640×640, 5 s) | Depth Wheel hub: chest rocks, seam glow pulses with rising sparks, ink question mark drifts like smoke |
 | `WheelGlowLoop` | `out/WheelGlowLoop.webm` (VP9 + alpha, 10 s; render with `--scale=0.75 --crf=48` → 768×768, 2.5 MB) | ring sways, strokes flow, bloom breathes, droplets orbit once per loop |
+| `LogoReveal` | `logo_reveal.webm` (VP9 + alpha, 1280×640, 2.6 s, one-shot) | intro screen: swash slashes in with water spray, ABYSSAL then TIDE painted in by torn brush strokes, ink splatter, glint; ends on the static logo |
+| `LogoIdle` | `logo.webm` (640×320, 5 s loop) | game corner: swash flows like water, glint over the letters, drips off the swash tail |
+| `TitleHunt` | `title_hunt.webm` (1600×560, 1.9 s, one-shot) | showdown: water slash, THE / HUNT / BEGINS slam in (HUNT on the impact sound), coral ink burst, shake, glint |
 | `*Preview` | `out/*_preview.mp4` | the transparent loops over a dark backdrop, for sharing |
 
 ```bash

@@ -1,6 +1,6 @@
 import React from "react"
 import { Composition } from "remotion"
-import { BackgroundLoop, HeroIdle, LeviathanIdle, LogoShimmer, WheelGlowLoop, WheelHubIdle } from "./loops"
+import { BackgroundLoop, HeroIdle, LeviathanIdle, LogoIdle, LogoReveal, LogoShimmer, TitleHunt, WheelGlowLoop, WheelHubIdle } from "./loops"
 import { theme } from "./theme"
 
 const { fps, seconds } = theme.loop
@@ -22,5 +22,11 @@ export const Root: React.FC = () => (
     <Composition id="WheelHubIdlePreview" component={WheelHubIdle} durationInFrames={N} fps={fps} width={640} height={640} defaultProps={{ preview: true }} />
     <Composition id="WheelGlowLoop" component={WheelGlowLoop} durationInFrames={NG} fps={fps} width={1024} height={1024} defaultProps={{ preview: false }} />
     <Composition id="WheelGlowLoopPreview" component={WheelGlowLoop} durationInFrames={NG} fps={fps} width={1024} height={1024} defaultProps={{ preview: true }} />
+    <Composition id="LogoReveal" component={LogoReveal} durationInFrames={Math.round(fps * 2.6)} fps={fps} width={1280} height={640} defaultProps={{ preview: false }} />
+    <Composition id="LogoRevealPreview" component={LogoReveal} durationInFrames={Math.round(fps * 2.6)} fps={fps} width={1280} height={640} defaultProps={{ preview: true }} />
+    <Composition id="LogoIdle" component={LogoIdle} durationInFrames={N} fps={fps} width={1280} height={640} defaultProps={{ preview: false }} />
+    <Composition id="LogoIdlePreview" component={LogoIdle} durationInFrames={N} fps={fps} width={1280} height={640} defaultProps={{ preview: true }} />
+    <Composition id="TitleHunt" component={TitleHunt} durationInFrames={Math.round(fps * 1.9)} fps={fps} width={1600} height={560} defaultProps={{ preview: false }} />
+    <Composition id="TitleHuntPreview" component={TitleHunt} durationInFrames={Math.round(fps * 1.9)} fps={fps} width={1600} height={560} defaultProps={{ preview: true }} />
   </>
 )

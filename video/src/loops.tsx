@@ -1,5 +1,5 @@
 import React from "react"
-import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion"
+import { AbsoluteFill, Img, continueRender, delayRender, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion"
 import { Bubbles, Grade, Grain, Layer, PreviewBg, Vignette, useSvgImage } from "./components"
 import { breath, cyclePos, theme, wave } from "./theme"
 
@@ -273,6 +273,241 @@ export const WheelGlowLoop: React.FC<LoopProps> = ({ preview }) => {
         </g>
         <g style={{ mixBlendMode: "screen" }}>{drops}</g>
       </svg></AbsoluteFill>
+    </AbsoluteFill>
+  )
+}
+
+// ------------------------------------------------------------------ Logo (reveal + idle)
+// The logo is two painted layers (tools/split_logo.py): the teal swash behind and the white
+// lettering in front. Canvas = logo + 10% margin on every side (room for splashes), 2:1.
+const LOGO = { w: 1758, h: 879, margin: 0.1 }
+
+/** Seeded particle list (deterministic between renders). */
+function particles(n: number, seed: number) {
+  let s = seed
+  const r = () => ((s = (s * 16807) % 2147483647) / 2147483647)
+  return Array.from({ length: n }, () => ({ a: r(), b: r(), c: r(), d: r() }))
+}
+
+const LogoStage: React.FC<{ children: React.ReactNode; scale?: number; rot?: number; dy?: number }> = ({ children, scale = 1, rot = 0, dy = 0 }) => (
+  <AbsoluteFill style={{ padding: `${LOGO.margin * 100}%` }}>
+    <svg viewBox={`0 0 ${LOGO.w} ${LOGO.h}`} style={{ width: "100%", height: "100%", overflow: "visible",
+      transform: `translateY(${dy}%) scale(${scale}) rotate(${rot + RASTER_EPS}deg)` }}>
+      {children}
+    </svg>
+  </AbsoluteFill>
+)
+
+/**
+ * LogoReveal (2.6 s, transparent): the swash slashes in with a ragged brush edge flinging water;
+ * "ABYSSAL" then "TIDE" are painted in by brush strokes while the logo settles; ink splatter bursts
+ * on impact and a glint runs over the letters. The last frames are exactly the static logo.
+ */
+export const LogoReveal: React.FC<LoopProps> = ({ preview }) => {
+  const f = useCurrentFrame()
+  const { fps } = useVideoConfig()
+  const swashSrc = useSvgImage(staticFile("logo_swash.png"))
+  const letterSrc = useSvgImage(staticFile("logo_letters.png"))
+  const { w: W, h: H } = LOGO
+  const sec = (s: number) => s * fps
+  const ease = (from: number, to: number, a: number, b: number, e = theme.ease.out) =>
+    interpolate(f, [sec(a), sec(b)], [from, to], { easing: e, extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+  // brush wipes: 0..1 progress, drawn as skewed rects whose edge is torn by turbulence
+  const swashP = ease(0, 1, 0.05, 0.42, theme.ease.inOut)
+  const lineA = ease(0, 1, 0.3, 0.72, theme.ease.inOut)
+  const lineB = ease(0, 1, 0.52, 0.92, theme.ease.inOut)
+  const settle = spring({ frame: f - sec(0.28), fps, config: { damping: 11, stiffness: 120, mass: 0.9 } })
+  const scale = interpolate(settle, [0, 1], [1.12, 1])
+  const rot = interpolate(settle, [0, 1], [-2.5, 0])
+  const impact = sec(0.92)
+  const glint = ease(-0.3, 1.3, 1.05, 1.7, theme.ease.inOut)
+  const rag = interpolate(f, [0, sec(1.1)], [70, 0], { extrapolateRight: "clamp" }) // edge tears heal once painted
+  const spray = particles(18, 7)
+  const ink = particles(16, 11)
+  return (
+    <AbsoluteFill>
+      {preview ? <PreviewBg /> : null}
+      <LogoStage scale={scale} rot={rot}>
+        <defs>
+          <filter id="rag" x="-20%" y="-20%" width="140%" height="140%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves={3} seed={3} />
+            <feDisplacementMap in="SourceGraphic" scale={rag} xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+          <mask id="mSwash" maskUnits="userSpaceOnUse" x={-W} y={-H} width={3 * W} height={3 * H}>
+            <g filter="url(#rag)"><rect x={-W * 0.2} y={-H * 0.2} width={W * 1.45 * swashP} height={H * 1.4} fill="#fff" transform={`skewX(-28)`} /></g>
+          </mask>
+          <mask id="mLetters" maskUnits="userSpaceOnUse" x={-W} y={-H} width={3 * W} height={3 * H}>
+            <g filter="url(#rag)">
+              <rect x={-W * 0.15} y={-H * 0.1} width={W * 1.35 * lineA} height={H * 0.62} fill="#fff" transform="skewX(-18)" />
+              <rect x={W * 0.05} y={H * 0.48} width={W * 1.25 * lineB} height={H * 0.62} fill="#fff" transform="skewX(-18)" />
+            </g>
+          </mask>
+          <mask id="mGlint"><image href={letterSrc} width={W} height={H} /></mask>
+          <linearGradient id="glintG" x1="0" x2="1" y1="0" y2="0.2">
+            <stop offset={Math.max(0, glint - 0.12)} stopColor="#fff" stopOpacity={0} />
+            <stop offset={Math.min(1, Math.max(0, glint))} stopColor="#e9fffb" stopOpacity={0.85} />
+            <stop offset={Math.min(1, glint + 0.12)} stopColor="#fff" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <g mask="url(#mSwash)"><image href={swashSrc} width={W} height={H} /></g>
+        {/* water flung off the swash's leading edge */}
+        {spray.map((p, i) => {
+          const t0 = sec(0.12 + p.a * 0.28)
+          const k = (f - t0) / sec(0.7)
+          if (k <= 0 || k >= 1) return null
+          const x0 = W * (0.1 + p.a * 0.85), y0 = H * (0.85 - p.a * 0.62)
+          const x = x0 + (60 + p.b * 160) * k, y = y0 - (90 + p.c * 120) * k + 260 * k * k
+          return <circle key={i} cx={x} cy={y} r={(4 + p.d * 9) * (1 - k * 0.6)} fill={theme.colors.tealHi} opacity={(1 - k) * 0.9} />
+        })}
+        <g mask="url(#mLetters)"><image href={letterSrc} width={W} height={H} /></g>
+        {/* ink splatter at the moment the lettering lands */}
+        {ink.map((p, i) => {
+          const k = (f - impact) / sec(0.55)
+          if (k <= 0 || k >= 1) return null
+          const ang = p.a * Math.PI * 2, dist = (120 + p.b * 520) * theme.ease.out(k)
+          return <circle key={i} cx={W * 0.5 + Math.cos(ang) * dist * 1.6} cy={H * 0.5 + Math.sin(ang) * dist * 0.8} r={(5 + p.c * 14) * (1 - k * 0.5)} fill={theme.colors.ink} opacity={(1 - k) * 0.85} />
+        })}
+        {glint > -0.2 && glint < 1.2 ? <rect width={W} height={H} fill="url(#glintG)" mask="url(#mGlint)" style={{ mixBlendMode: "screen" }} /> : null}
+      </LogoStage>
+    </AbsoluteFill>
+  )
+}
+
+/**
+ * LogoIdle (5 s seamless loop, transparent) for the game's corner: the swash flows like water
+ * (displacement noise on a circular path), a glint passes over the white letters once, droplets
+ * drip off the swash tail, and the logo breathes very slightly.
+ */
+export const LogoIdle: React.FC<LoopProps> = ({ preview }) => {
+  const f = useCurrentFrame()
+  const { durationInFrames: N, fps } = useVideoConfig()
+  const swashSrc = useSvgImage(staticFile("logo_swash.png"))
+  const letterSrc = useSvgImage(staticFile("logo_letters.png"))
+  const { w: W, h: H } = LOGO
+  const ang = (2 * Math.PI * f) / N
+  const b = breath(f, N)
+  const glint = interpolate(f, [0.15 * N, 0.5 * N], [-0.3, 1.3], { easing: theme.ease.inOut, extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+  const drips = [0.55, 0.62, 0.71].map((at, i) => ({ at, x: W * (0.935 + i * 0.012), y: H * (0.2 + i * 0.03) }))
+  return (
+    <AbsoluteFill>
+      {preview ? <PreviewBg /> : null}
+      <LogoStage scale={1 + 0.008 * b}>
+        <defs>
+          <filter id="flowL" x="-5%" y="-5%" width="110%" height="110%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves={2} seed={5} result="n" />
+            <feOffset in="n" dx={Math.cos(ang) * 70} dy={Math.sin(ang) * 70} result="no" />
+            <feDisplacementMap in="SourceGraphic" in2="no" scale={14} xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+          <mask id="mGlintI"><image href={letterSrc} width={W} height={H} /></mask>
+          <linearGradient id="glintI" x1="0" x2="1" y1="0" y2="0.2">
+            <stop offset={Math.max(0, glint - 0.1)} stopColor="#fff" stopOpacity={0} />
+            <stop offset={Math.min(1, Math.max(0, glint))} stopColor="#e9fffb" stopOpacity={0.7} />
+            <stop offset={Math.min(1, glint + 0.1)} stopColor="#fff" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <image href={swashSrc} width={W} height={H} filter="url(#flowL)" />
+        {drips.map((d, i) => {
+          const k = (f / N - d.at) / 0.22
+          if (k <= 0 || k >= 1) return null
+          return <ellipse key={i} cx={d.x} cy={d.y + 150 * k * k} rx={6} ry={6 + 8 * k} fill={theme.colors.tealHi} opacity={Math.sin(Math.PI * k) * 0.9} />
+        })}
+        <image href={letterSrc} width={W} height={H} />
+        {glint > -0.2 && glint < 1.2 ? <rect width={W} height={H} fill="url(#glintI)" mask="url(#mGlintI)" style={{ mixBlendMode: "screen" }} /> : null}
+      </LogoStage>
+    </AbsoluteFill>
+  )
+}
+
+// ------------------------------------------------------------------ "THE HUNT BEGINS" title
+/** Load the game's title font (Permanent Marker) and hold the render until it is ready. */
+function useTitleFont(): string {
+  const [handle] = React.useState(() => delayRender("title font"))
+  React.useEffect(() => {
+    const face = new FontFace("TitleMarker", `url(${staticFile("permanent-marker.woff2")})`)
+    face.load().then((f) => { (document.fonts as unknown as { add: (x: FontFace) => void }).add(f); continueRender(handle) }, () => continueRender(handle))
+  }, [handle])
+  return "TitleMarker"
+}
+
+/**
+ * TitleHunt (1.9 s, transparent, 1600x560): a water slash cuts across, then THE / HUNT / BEGINS each
+ * slam in on their own beat (HUNT hardest), revealed by a torn brush stroke; coral ink bursts on the
+ * HUNT impact, the whole title shakes once, and a glint runs over it. Ends on a still title.
+ */
+export const TitleHunt: React.FC<LoopProps> = ({ preview }) => {
+  const f = useCurrentFrame()
+  const { fps } = useVideoConfig()
+  const font = useTitleFont()
+  const slash = useSvgImage(staticFile("water_slash.png"))
+  const sec = (s: number) => s * fps
+  const W = 1600, H = 560
+  // exact widths (textLength) so the three words sit side by side with even gaps
+  const words = [
+    { text: "THE", x: 225, y: 318, size: 130, w: 250, at: 0.14, push: 1.9 },
+    { text: "HUNT", x: 672, y: 334, size: 220, w: 560, at: 0.3, push: 2.6 },
+    { text: "BEGINS", x: 1240, y: 318, size: 150, w: 500, at: 0.5, push: 2.1 },
+  ]
+  const slashP = interpolate(f, [sec(0), sec(0.32)], [0, 1], { easing: theme.ease.out, extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+  const hit = sec(0.3 + 0.16)
+  const shakeK = interpolate(f, [hit, hit + sec(0.35)], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+  const shake = f >= hit ? Math.sin((f - hit) * 1.9) * 14 * shakeK : 0
+  const glint = interpolate(f, [sec(0.95), sec(1.55)], [-0.3, 1.3], { easing: theme.ease.inOut, extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+  const rag = interpolate(f, [0, sec(1.0)], [55, 0], { extrapolateRight: "clamp" })
+  const ink = particles(22, 19)
+  const stroke = (size: number) => size * 0.11
+  return (
+    <AbsoluteFill>
+      {preview ? <PreviewBg /> : null}
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "100%", overflow: "visible", transform: `translate(${shake}px, ${shake * -0.5}px) rotate(${-4 + RASTER_EPS}deg)` }}>
+        <defs>
+          <filter id="ragT" x="-20%" y="-30%" width="140%" height="160%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves={3} seed={8} />
+            <feDisplacementMap in="SourceGraphic" scale={rag} xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+          <mask id="mSlash" maskUnits="userSpaceOnUse" x={-W} y={-H} width={3 * W} height={3 * H}>
+            <g filter="url(#ragT)"><rect x={-100} y={-100} width={(W + 300) * slashP} height={H + 200} fill="#fff" transform="skewX(-25)" /></g>
+          </mask>
+          <linearGradient id="glintT" x1="0" x2="1" y1="0" y2="0.15">
+            <stop offset={Math.max(0, glint - 0.08)} stopColor="#fff" stopOpacity={0} />
+            <stop offset={Math.min(1, Math.max(0, glint))} stopColor="#e9fffb" stopOpacity={0.9} />
+            <stop offset={Math.min(1, glint + 0.08)} stopColor="#fff" stopOpacity={0} />
+          </linearGradient>
+          {words.map((w, i) => {
+            const p = interpolate(f, [sec(w.at), sec(w.at + 0.16)], [0, 1], { easing: theme.ease.out, extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+            const half = w.w / 2
+            return (
+              <mask key={i} id={`mw${i}`} maskUnits="userSpaceOnUse" x={-W} y={-H} width={3 * W} height={3 * H}>
+                <g filter="url(#ragT)"><rect x={w.x - half - 60} y={w.y - w.size} width={(half * 2 + 120) * p} height={w.size * 1.4} fill="#fff" transform={`skewX(-18)`} style={{ transformOrigin: `${w.x}px ${w.y}px` }} /></g>
+              </mask>
+            )
+          })}
+        </defs>
+        {/* the water slash behind the words */}
+        <g mask="url(#mSlash)">
+          <image href={slash} x={W * 0.02} y={H * 0.08} width={W * 0.96} height={H * 0.86} preserveAspectRatio="none" opacity={0.92} />
+        </g>
+        {/* coral ink bursting from the HUNT impact */}
+        {ink.map((p, i) => {
+          const k = (f - hit) / sec(0.6)
+          if (k <= 0 || k >= 1) return null
+          const a = p.a * Math.PI * 2, dist = (80 + p.b * 520) * theme.ease.out(k)
+          return <circle key={i} cx={672 + Math.cos(a) * dist * 1.5} cy={260 + Math.sin(a) * dist * 0.55 + 120 * k * k}
+            r={(5 + p.c * 16) * (1 - 0.5 * k)} fill={i % 3 ? theme.colors.coral : theme.colors.ink} opacity={(1 - k) * 0.9} />
+        })}
+        {words.map((w, i) => {
+          const s = spring({ frame: f - sec(w.at), fps, config: { damping: 12, stiffness: 190, mass: 0.7 } })
+          const scale = interpolate(s, [0, 1], [w.push, 1])
+          const op = interpolate(f, [sec(w.at), sec(w.at + 0.06)], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+          const common = { x: w.x, y: w.y, textAnchor: "middle" as const, fontFamily: font, fontSize: w.size, textLength: w.w, lengthAdjust: "spacingAndGlyphs" as const }
+          return (
+            <g key={i} mask={`url(#mw${i})`} opacity={op} style={{ transformOrigin: `${w.x}px ${w.y - w.size * 0.35}px`, transform: `scale(${scale})` }}>
+              <text {...common} fill={theme.colors.ink} stroke={theme.colors.ink} strokeWidth={stroke(w.size) * 2.2} strokeLinejoin="round" transform={`translate(0 ${w.size * 0.06})`}>{w.text}</text>
+              <text {...common} fill="#F3F5F2" stroke={theme.colors.ink} strokeWidth={stroke(w.size)} strokeLinejoin="round" paintOrder="stroke">{w.text}</text>
+              {glint > -0.2 && glint < 1.2 ? <text {...common} fill="url(#glintT)" style={{ mixBlendMode: "screen" }}>{w.text}</text> : null}
+            </g>
+          )
+        })}
+      </svg>
     </AbsoluteFill>
   )
 }
