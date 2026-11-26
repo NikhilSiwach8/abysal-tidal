@@ -8,6 +8,7 @@ import "./style.css"
 import { NOISE_URL, UI_ICONS, icon } from "./art"
 import { allAssetUrls, asset, assetsMatching, preloadTracked, titleImage } from "./assets"
 import { setLeviathanLoopPaused, startLoops, attachWheelLoops, logoReveal, titleHunt, ONE_SHOT_CLIPS } from "./loops"
+import { heroAct, initCharacters, levAct, tensionLean } from "./characters"
 import bgFar from "./assets/bg/bg_layer_far_fog.webp"
 import bgMid from "./assets/bg/bg_layer_mid_stacks_ship.webp"
 import bgFront from "./assets/bg/bg_layer_front_kelp.webp"
@@ -186,6 +187,7 @@ function buildDom() {
       <img class="rig-l" src="${asset("chars/lev_head")}" alt="" draggable="false" data-part="head">
       <img class="rig-l" src="${asset("chars/lev_gills")}" alt="" draggable="false" data-part="gills">
       <i class="hit-flash" style="--m:url(${asset("chars/lev_body")}),url(${asset("chars/lev_head")})"></i>
+      <i class="hurt-tint" style="--m:url(${asset("chars/lev_body")}),url(${asset("chars/lev_head")})"></i>
     </div></div></div>
     <div class="logo"><img class="logo-img" src="${asset("lettering/logo")}" alt="Abyssal Tide" draggable="false"><span class="logo-shine" style="--logo:url(${asset("lettering/logo")})"></span><span class="tag" hidden></span></div>
     <main class="stage">
@@ -239,8 +241,10 @@ function cellHtml(code: Code, r: number, c: number): string {
 }
 
 function makeCell(code: Code, r: number, c: number, fromRow: number): HTMLElement {
-  const el = h(`<div class="cell${code === "H6" ? " mega" : ""}${code === "S" || code === "S2" ? " is-scat" : ""}" style="left:${(r * 100) / N}%;top:${topPct(fromRow)}">${cellHtml(code, r, c)}</div>`)
+  const special = code === "W" || code === "S" || code === "S2"
+  const el = h(`<div class="cell${code === "H6" ? " mega" : ""}${code === "S" || code === "S2" ? " is-scat" : ""}${special ? " is-special" : ""}" style="left:${(r * 100) / N}%;top:${topPct(fromRow)}">${cellHtml(code, r, c)}</div>`)
   el.dataset.code = code
+  if (special) el.style.setProperty("--glint-d", `${(-Math.random() * 4.2).toFixed(2)}s`)
   $(".symbols").append(el)
   return el
 }
@@ -366,11 +370,11 @@ function slashLeviathan() {
   // the spear's tip leads: offset the box so the tip (right end) sits on the path point
   const tf = (p: { x: number; y: number; a: number }) => `translate(${p.x}px, ${p.y}px) rotate(${p.a}deg) translateX(${-W * 0.97}px)`
   hero.animate([
-    { transform: "none" },
-    { transform: "translateX(-2%) rotate(-2deg)", offset: 0.3 },
-    { transform: "translateX(6%) rotate(3deg)", offset: 0.55 },
-    { transform: "none" },
-  ], { duration: 520 * speed(), easing: "cubic-bezier(.3,.7,.3,1)" })
+    { transform: "translate(0, 0) rotate(0deg)" },
+    { transform: "translate(-2%, 0) rotate(-2deg)", offset: 0.3 },
+    { transform: "translate(6%, 0) rotate(3deg)", offset: 0.55 },
+    { transform: "translate(0, 0) rotate(0deg)" },
+  ], { duration: 520 * speed(), easing: "cubic-bezier(.3,.7,.3,1)", composite: "add" })
   const wrap = h(`<div class="spear" style="width:${W}px"><i class="spear-trail"></i>${SPEAR_SVG}</div>`)
   document.body.append(wrap)
   const done = () => { wrap.remove(); spearBusy = false }
@@ -458,14 +462,16 @@ function setDamage(d: number, hit = false) {
       { transform: "translateX(-3px)", offset: 0.6 }, { transform: "translateX(2px)", offset: 0.8 }, { transform: "none" }], { duration: 300 * speed() })
     if (left > 0) slashLeviathan()
     $(".lev-rig").animate([
-      { transform: "none", easing: "cubic-bezier(.2,.8,.3,1)" },
-      { transform: "translateX(2.2%) rotate(1.2deg)", offset: 0.3, easing: "cubic-bezier(.4,0,.2,1)" },
-      { transform: "none" },
-    ], { duration: 380 * speed() })
+      { transform: "translate(0, 0) rotate(0deg)", easing: "cubic-bezier(.2,.8,.3,1)" },
+      { transform: "translate(2.2%, 0) rotate(1.2deg)", offset: 0.3, easing: "cubic-bezier(.4,0,.2,1)" },
+      { transform: "translate(0, 0) rotate(0deg)" },
+    ], { duration: 380 * speed(), composite: "add" })
     $(".lev-rig .hit-flash").animate([{ opacity: 0 }, { opacity: 0.75, offset: 0.2 }, { opacity: 0 }], { duration: 380 * speed(), easing: "ease-out" })
   } else if (hit && left > 0) {
     slashLeviathan()
   }
+  levAct.hurt(d)
+  if (left === 0 && !$(".leviathan").classList.contains("slain")) levAct.death()
   $(".leviathan").classList.toggle("slain", left === 0)
   setLeviathanLoopPaused(left === 0)
 }
@@ -963,6 +969,7 @@ async function evReveal(e: BookEvent) {
       const total = (teased ? REEL.teaseNext : REEL.tease) * speed()
       const t0 = performance.now()
       sfx.teaseStart(scatters)
+      tensionLean(true)
       // the reel visibly loses speed while it teases (eased every frame, no steps)
       let raf = 0
       const slow = () => {
@@ -1000,8 +1007,14 @@ async function evReveal(e: BookEvent) {
         }
       })
     }
+    void Promise.all(anims.map((a) => a.finished)).then(() => {
+      for (let c = 0; c < N; c++) if (board[r]![c] === "W") landAccent(cells[r]![c], { reel: r, row: c })
+    }, () => {})
     scatters += here
-    if (here) sfx.scatterLand(scatters)
+    if (here) {
+      sfx.scatterLand(scatters)
+      levAct.flinch()
+    }
     if (tease) {
       const t = tease
       t.classList.add("done")
@@ -1010,11 +1023,36 @@ async function evReveal(e: BookEvent) {
   }
   setTeaseDim(false)
   sfx.teaseStop()
+  tensionLean(false)
   await sleep(REEL.stop + (N - 1) * REEL.rowStagger + 40)
   document.querySelectorAll(".cell.scat-land").forEach((el) => el.classList.remove("scat-land"))
 }
 
+/**
+ * Win motion per symbol family: card ranks give an ink flick, sea creatures wriggle,
+ * panels (trident, wild) punch with a short wobble.
+ */
+function winMotion(code: Code): [Keyframe[], number] {
+  const s0 = { transform: "rotate(0deg) scale(1)" }
+  if (code.startsWith("L"))
+    return [[s0, { transform: "rotate(-5deg) scale(1.14)", offset: 0.35 }, { transform: "rotate(2deg) scale(.98)", offset: 0.7 }, s0], 380]
+  if (code === "H5" || code === "W" || code === "H6")
+    return [[s0, { transform: "rotate(0deg) scale(1.13)", offset: 0.3 }, { transform: "rotate(-3deg) scale(1.08)", offset: 0.55 }, { transform: "rotate(2deg) scale(1.03)", offset: 0.75 }, s0], 460]
+  return [[s0, { transform: "rotate(-8deg) scale(1.1)", offset: 0.2 }, { transform: "rotate(7deg) scale(1.12)", offset: 0.45 },
+    { transform: "rotate(-4deg) scale(1.06)", offset: 0.7 }, s0], 540]
+}
+
+/** A wild landing: it punches in and the water rings out from it. */
+function landAccent(cell: HTMLElement | null | undefined, at: Pos) {
+  if (!cell || prefersReduced()) return
+  const art = cell.querySelector<HTMLElement>(".art")
+  art?.animate([{ transform: "rotate(-10deg) scale(1.22)" }, { transform: "rotate(4deg) scale(.96)", offset: 0.55 }, { transform: "rotate(0deg) scale(1)" }],
+    { duration: 420 * speed(), easing: EASE_OUT })
+  ripple(at)
+}
+
 async function evWinInfo(e: BookEvent) {
+  heroAct.nod()
   const wins = e.wins as { symbol: Code; clusterSize: number; win: number; positions: Pos[]; meta: { clusterMult: number; overlay: Pos } }[]
   for (const w of wins) {
     const o0 = w.meta.overlay
@@ -1022,9 +1060,10 @@ async function evWinInfo(e: BookEvent) {
       const cell = cells[p.reel]![p.row]
       cell?.classList.add("win")
       const art = cell?.querySelector<HTMLElement>(".art")
-      if (art && !prefersReduced())
-        art.animate([{ transform: "scale(1)" }, { transform: "scale(1.12)", offset: 0.4 }, { transform: "scale(1)" }],
-          { duration: 320 * speed(), delay: Math.hypot(p.reel - o0.reel, p.row - o0.row) * 35 * speed(), easing: EASE_OUT })
+      if (art && !prefersReduced()) {
+        const [frames, ms] = winMotion(w.symbol)
+        art.animate(frames, { duration: ms * speed(), delay: Math.hypot(p.reel - o0.reel, p.row - o0.row) * 35 * speed(), easing: EASE_OUT })
+      }
     }
     const o = w.meta.overlay
     const pop = h(`<div class="win-pop" style="left:${((o.reel + 0.5) * 100) / N}%;top:${((o.row + 0.5) * 100) / N}%">${fmt(bookToApi(w.win))}</div>`)
@@ -1085,6 +1124,8 @@ async function evFeature(e: BookEvent) {
   const positions = info.positions as Pos[]
   banner(`POWER-UP · ${POWER_NAMES[feature] ?? feature}`)
   sfx.power()
+  heroAct.thrust()
+  levAct.roar()
   const shout = announcePowerUp(feature, info.damage as number)
   if (feature === "bossSlain") {
     const r0 = Math.min(...positions.map((p) => p.reel))
@@ -1102,14 +1143,37 @@ async function evFeature(e: BookEvent) {
 
 async function evUpdateBoard(e: BookEvent) {
   const board = (e.board as { name: Code }[][]).map((reel) => reel.map((s) => s.name))
+  const changed: Pos[] = []
   for (let r = 0; r < N; r++)
     for (let c = 0; c < N; c++)
-      if (board[r]![c] !== st.board[r]![c] || board[r]![c] === "H6") {
-        placeCell(r, c, board[r]![c]!)
-        cells[r]![c]!.classList.add("morph")
-      }
+      if (board[r]![c] !== st.board[r]![c] || board[r]![c] === "H6") changed.push({ reel: r, row: c })
   st.board = board
-  await sleep(600)
+  if (!changed.length) return
+  const reduce = prefersReduced()
+  const mega = changed.some((p) => board[p.reel]![p.row] === "H6")
+  // ripple outward from the centre of the change (the mega symbol assembles slice by slice)
+  const cx = changed.reduce((n, p) => n + p.reel, 0) / changed.length
+  const cy = changed.reduce((n, p) => n + p.row, 0) / changed.length
+  const step = (mega ? 55 : 40) * speed()
+  const delay = (p: Pos) => Math.hypot(p.reel - cx, p.row - cy) * step
+  const half = 130 * speed()
+  // the old symbol turns edge-on ...
+  if (!reduce)
+    for (const p of changed)
+      cells[p.reel]![p.row]?.animate([{ transform: "perspective(600px) rotateY(0deg)" }, { transform: "perspective(600px) rotateY(90deg) scale(.96)" }],
+        { duration: half, delay: delay(p), easing: "cubic-bezier(0.55, 0, 1, 0.45)", fill: "forwards" })
+  const longest = Math.max(...changed.map(delay))
+  await new Promise((res) => setTimeout(res, reduce ? 0 : longest + half))
+  // ... and the new one turns face-on with a flash
+  for (const p of changed) {
+    placeCell(p.reel, p.row, board[p.reel]![p.row]!)
+    const cell = cells[p.reel]![p.row]!
+    cell.classList.add("morph")
+    if (!reduce)
+      cell.animate([{ transform: "perspective(600px) rotateY(-90deg) scale(.96)" }, { transform: "perspective(600px) rotateY(8deg) scale(1.04)", offset: 0.7 }, { transform: "perspective(600px) rotateY(0deg) scale(1)" }],
+        { duration: 300 * speed(), delay: delay(p), easing: EASE_OUT, fill: "backwards" })
+  }
+  await sleep(mega ? 700 : 520)
 }
 
 async function evTumble(e: BookEvent) {
@@ -1213,6 +1277,8 @@ async function playEvents(events: BookEvent[], opts: { mode: string }) {
         setWinReadout(st.spinBase)
         break
       case "freeSpinTrigger":
+        heroAct.leap()
+        levAct.roar()
         for (const p of e.positions as Pos[]) cells[p.reel]![p.row]?.classList.add("scat")
         sfx.scatter(5)
         shake(1.1)
@@ -1278,6 +1344,7 @@ async function playRound(mode: string) {
   }
   sfx.unlock()
   sfx.spin()
+  heroAct.brace()
   st.busy = true
   st.slam = false
   syncButtons()
@@ -1809,6 +1876,7 @@ async function boot() {
   if (params.get("social") === "true") setSocial(true)
   buildDom()
   startLoops()
+  initCharacters(speed, () => !st.busy && !st.modal && !document.querySelector(".overlay, .intro, .vs, .wheel-ov"))
   initialBoard()
   setDamage(0)
   setTierUi(null)
