@@ -844,3 +844,9 @@ table.modes th { font-family: var(--f-lil); font-weight: 400; }
   background-position: 130% 0; animation: glint 4.2s ease-in-out var(--glint-d, 0s) infinite; }
 @keyframes glint { 0%, 70% { background-position: 130% 0; } 100% { background-position: -30% 0; } }
 @media (prefers-reduced-motion: reduce) { .cell.is-special::before { animation: none; display: none; } }
+
+/* damage number flying from the cluster to the HP bar (main.ts flyDamage) */
+.dmg-fly { position: fixed; left: 0; top: 0; z-index: 9; pointer-events: none; white-space: nowrap; will-change: transform, opacity;
+  font-family: var(--f-mark); font-size: clamp(30px, calc(var(--g) * .095), 72px); line-height: 1; color: #ffd9cf;
+  -webkit-text-stroke: clamp(2px, calc(var(--g) * .005), 4px) var(--ink); paint-order: stroke fill;
+  text-shadow: 0 3px 0 var(--ink), 0 0 14px rgba(232, 85, 62, .85); }

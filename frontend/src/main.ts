@@ -1113,10 +1113,50 @@ function announcePowerUp(feature: string, damage: number): Promise<void> {
   return new Promise((res) => setTimeout(() => { el.remove(); res() }, ms))
 }
 
+/**
+ * Damage number: "-N" pops out of the winning cluster(s), floats up, then flies along an arc to the
+ * HP bar's current edge, shrinking as it goes; the bar drops when it lands (the caller awaits this).
+ * One composited animation per number; reduced motion skips the flight.
+ */
+async function flyDamage(amount: number, before: number): Promise<void> {
+  if (amount <= 0 || prefersReduced()) return
+  const g = $(".grid").getBoundingClientRect()
+  const chan = $(".hp-chan").getBoundingClientRect()
+  const from = st.lastBursts.length ? st.lastBursts : [{ reel: 2.5, row: 2.5 }]
+  // start at the middle of the winning clusters
+  const ox = g.left + ((from.reduce((n, p) => n + p.reel, 0) / from.length + 0.5) * g.width) / N
+  const oy = g.top + ((from.reduce((n, p) => n + p.row, 0) / from.length + 0.5) * g.height) / N
+  // land on the edge of the remaining HP (the fill drains from the left)
+  const tx = chan.left + chan.width * Math.min(1, before / BOSS_HP)
+  const ty = chan.top + chan.height / 2
+  const el = h(`<div class="dmg-fly">-${amount}</div>`)
+  document.body.append(el)
+  const lift = oy - Math.max(28, g.height * 0.07)
+  const peak = Math.min(lift, ty) - g.height * 0.12
+  const frames: Keyframe[] = [
+    { transform: `translate(${ox}px, ${oy}px) translate(-50%, -50%) scale(.4)`, opacity: 0, offset: 0 },
+    { transform: `translate(${ox}px, ${lift + 6}px) translate(-50%, -50%) scale(1.25)`, opacity: 1, offset: 0.22, easing: "cubic-bezier(0.23, 1, 0.32, 1)" },
+    { transform: `translate(${ox}px, ${lift}px) translate(-50%, -50%) scale(1)`, opacity: 1, offset: 0.38, easing: "cubic-bezier(0.55, 0, 0.9, 0.5)" },
+  ]
+  // the flight: points on a quadratic arc from the float position to the bar edge
+  for (let i = 1; i <= 8; i++) {
+    const k = i / 8, u = 1 - k
+    const x = u * u * ox + 2 * u * k * ((ox + tx) / 2) + k * k * tx
+    const y = u * u * lift + 2 * u * k * peak + k * k * ty
+    frames.push({ transform: `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${(1 - 0.45 * k).toFixed(3)})`, opacity: 1, offset: 0.38 + 0.62 * k })
+  }
+  await el.animate(frames, { duration: 760 * speed(), fill: "forwards" }).finished.catch(() => {})
+  // a burst where it hits the bar, then gone
+  el.animate([{ transform: `translate(${tx}px, ${ty}px) translate(-50%, -50%) scale(.55)`, opacity: 1 }, { transform: `translate(${tx}px, ${ty}px) translate(-50%, -50%) scale(1.1)`, opacity: 0 }],
+    { duration: 220 * speed(), easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "forwards" }).finished.then(() => el.remove(), () => el.remove())
+}
+
 async function evFeature(e: BookEvent) {
   const info = (e.info as Record<string, unknown>[])[0]!
   if (e.featureType === "damage") {
-    setDamage(info.damage as number, true)
+    const total = info.damage as number
+    await flyDamage((info.added as number | undefined) ?? Math.max(0, total - st.damage), st.damage)
+    setDamage(total, true)
     sfx.hit()
     return
   }
